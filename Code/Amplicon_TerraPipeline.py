@@ -53,10 +53,12 @@ def main():
 	with open(args.config, 'r') as config_file:
 		config_inputs = json.load(config_file)
 		path_to_fq = config_inputs['path_to_fq']
-		path_to_flist = 'barcodes_matches.csv'
-		pr1 = 'primers_fw.fasta'
-		pr2 = 'primers_rv.fasta'
-		path_to_snv = 'snv_filters.txt'
+		path_to_flist = config_inputs['path_to_flist']
+		pr1 = config_inputs['pr1']
+		pr2 = config_inputs['pr2']
+		reference1 = config_inputs['reference1']
+		if 'reference2'	in config_inputs.keys(): reference2 = config_inputs['reference2']
+		if 'path_to_snv' in config_inputs.keys(): path_to_snv = config_inputs['path_to_snv']
 		if 'pattern_fw' in config_inputs.keys(): pattern_fw = config_inputs['pattern_fw']
 		if 'pattern_rv' in config_inputs.keys(): pattern_rv = config_inputs['pattern_rv']
 		if 'Class' in config_inputs.keys(): Class = config_inputs['Class']
@@ -85,6 +87,14 @@ def main():
 		if 'adapter' in config_inputs.keys(): adapter = eval(config_inputs['adapter'])
 
 	### PREPARE OUTPUT DIRECTORIES
+
+	print("Watermark 2")
+	print("Here are the inputs")
+	print(config_inputs.keys())
+
+	print("Here are the references")
+	print(reference1)
+	print(reference2)
 
 	#Generate the path to the Results directory.
 	global res_dir
@@ -240,10 +250,10 @@ def main():
 
 		#Get the size of the reference ASVs
 		print("Getting the size of the reference ASV")
-		if os.path.exists("reference_panel_1.fasta"):
-			ref_files = ["reference_panel_1.fasta"]
-			if os.path.exists("reference_panel_2.fasta"):
-				ref_files.append("reference_panel_2.fasta")
+		if os.path.exists(reference1):
+			ref_files = [reference1]
+			if os.path.exists(reference2):
+				ref_files.append(reference2)
 		else:
 			sys.exit('At the least one reference is necessary to separate reads according to ASV target size.')
 		asv_lengths = {}
@@ -341,12 +351,12 @@ def main():
 		bimera_nop = os.path.join(res_dir, 'DADA2_NOP', 'ASVBimeras.txt')
 
 		#ASV modification block for non-op targets and merge two ASV tables
-		if os.path.exists("reference_panel_1.fasta"):
+		if os.path.exists(reference1):
 			if args.terra:
 				path_to_program = os.path.join("/", "Code/adjustASV.R")
 			else:
 				path_to_program = os.path.join("Code/adjustASV.R")
-			adjASV = ['Rscript', path_to_program, '-s', seqtab_nop, '-ref', "reference_panel_1.fasta",
+			adjASV = ['Rscript', path_to_program, '-s', seqtab_nop, '-ref', reference1,
 			'-dist', adjust_mode,
 			'-o', os.path.join(res_dir, 'DADA2_NOP', 'correctedASV.txt')]
 			print(adjASV)
@@ -385,9 +395,9 @@ def main():
 		if no_ref == 'True':
 			postProc.extend(['-no_ref'])
 		else:
-			postProc.extend(['--reference', "reference_panel_1.fasta", '--strain', strain])
-			if os.path.exists("reference_panel_2.fasta"):
-				postProc.extend(['--reference2', "reference_panel_2.fasta", '--strain2', strain2])
+			postProc.extend(['--reference', reference1, '--strain', strain])
+			if os.path.exists(reference2):
+				postProc.extend(['--reference2', reference2, '--strain2', strain2])
 
 		print(postProc)
 		procASV = subprocess.Popen(postProc)
@@ -404,7 +414,7 @@ def main():
 		path_to_table = os.path.join(res_dir, "PostProc_DADA2", "ASVTable.txt") #ASV table from DADA2 pipeline
 		path_to_out = os.path.join(res_dir, "CIGARVariants_Bfilter.out.tsv") #Output seqtab tsv file with amplicon/variant counts
 		path_asv_to_cigar = os.path.join(res_dir, "ASV_to_CIGAR", "ASV_to_CIGAR.out.txt") #Output file for ASV -> CIGAR string table 
-		path_to_amp_db = "reference_panel_1.fasta" #Amplicon sequence fasta file
+		path_to_amp_db = reference1 #Amplicon sequence fasta file
 		path_to_alignments = os.path.join(res_dir, "ASV_to_CIGAR", "alingments") #Directory to store ASV alignment files
 
 		print(f"INFO: Loading {path_to_amp_db}")
