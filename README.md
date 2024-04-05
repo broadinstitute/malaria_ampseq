@@ -18,6 +18,6 @@ Once inside the workflow, the user must select the "plate" in which he wants to 
 
 ## Contact
 
-Jorge Eduardo Amaya Romero
+Jorge Eduardo Amaya Romero:
 
 jamayaro@broadinstitute.org
