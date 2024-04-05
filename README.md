@@ -1,33 +1,23 @@
-#AMP\_SEQ
+# AMPSEQ
 
-Check point 1
+Combinatorial indexing during library preparation tags PCR products in an Illumina Plate with unique, per-well inline barcodes pairs. By matching reads to their expected inline barcodes, indigenous PCR products in a well can be differentiated from alien reads that intruded in the well during PCR setup.
 
-Quick git push: git add . && git commit -m "Updated wdl" && git push origin main
+The Amplicon Decontamination workflow in AmpSeq leverages this principle for detecting, reporting, and filtering out contamination. When using inline barcodes, AmpSeq seamlessly pipes decontamined read files into the Denoising workflow (if no barcodes are used, the workflow will assume reads have been correctly imputed to their well and automatically proceed with the next step, denoising).
 
-Quick docker push: 
-#Comment out the last two lines of the file
-docker build --platform linux/amd64 -t jorgeamaya/mixed_reads_ampseq . && docker push jorgeamaya/mixed_reads_ampseq
+Amplicon Denoising is an algorithmic process for distinguishing true base calls in amplicon sequencing data. Denoising methods identify and remove PCR errors introduced during amplification, errors in sequence determination during sequencing reactions, and erroneuos sequences, such as chimeras. It is a necessary step to enhance the fidelity of reported haplotypes, allowing for reliable downstream analysis and interpretations. To perform the denoising of reads, AmpSeq on Terra incorporates the DADA2 algorithm.
 
-## Development
+# USAGE 
 
-Build docker: docker build --platform linux/amd64 -t jorgeamaya/mixed_reads_ampseq .
+## Uploading data
 
-Run docker container with mounted volume: docker run -v ~/Desktop/Data_Repository_AmpSeq/SIMPLseq_CI/Plate_1:/Data --platform linux/amd64 -it jorgeamaya/mixed_reads_ampseq bash
+AmpSeq has been optimized to run in [Terra](https://app.terra.bio/). Running the pipeline requires creating a New Folder in the "DATA" tab of the user's Terra workspace. For this, the user must click the "DATA" tab and then the "Files" tab on the bottom left. After accessing the files section, the user must click the "New Folder" button on the top right. This will redirect the user to the new folder. Inside the new folder, the user can upload the data described in the previous section (The workflow will dynamically identify the files using their names. This is the reason why naming conventions must be followed strictly). After the data have been uploaded, the folder must be "staged" by importing the data as described in the Terra documentation.
 
-Quick build and exec: docker build --platform linux/amd64 -t jorgeamaya/mixed_reads_ampseq . && docker run -v ~/Desktop/Data_Repository_AmpSeq/SIMPLseq_CI/Plate_1:/Data --platform linux/amd64 -it jorgeamaya/mixed_reads_ampseq bash
+## Running the workflow
 
-Copy files if necessary: container_name=$(docker ps -qf "name=$1") && docker cp /Users/jar4142/Desktop/Data_Repository_AmpSeq/SIMPLseq_CI/Plate_1/barcodes_matches.csv "$container_name":barcodes_matches.csv && container_name=$(docker ps -qf "name=$1") && docker cp /Users/jar4142/Desktop/Plate_1_Results/missing_files.tsv "$container_name":missing_files.tsv
+Once inside the workflow, the user must select the "plate" in which he wants to perform the analyses. This is done through the "Select Data" button. In the path_to_fq field, the user must type "this.study_id". The remaining parameters are preconfigured and sufficient to fulfill the requirements of typical analyses. Nonetheless, users retain the flexibility to adjust these parameters to suit specific objectives. The extended documentation - link pending provides information about this configurable parameters. Finally, the user must launch the workflow by clicking the "SAVE" and "RUN ANALYSIS" buttons.
 
-Copy directory back to host machine from running docker container: container_name=$(docker ps -qf "name=$1") && docker cp "$container_name":/Results .
+## Contact
 
-If at any point the previous command doesn't work
-1. Obtain the name of the container with the function: docker ps -q or from the prompt that points to the running container. For example, in the prompt "(ampseq_env) root@9f93f54a5455:/#" the name of the container is 9f93f54a5455.
-2. Replace <container_name> with the name of the container and run the following command: docker cp <container_name>:Results .
+Jorge Eduardo Amaya Romero
 
-Clearing Docker containers to realese memory: 
-```
-docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)
-docker container prune; docker image prune; docker volume prune
-```
-
-Rscript /render_report.R -d "/Results/Merge/" -o "/Report/" -p "barcodes_matches.csv" -m 1000 -c 0.5 -mf "Results/missing_files.tsv"
+jamayaro@broadinstitute.org
