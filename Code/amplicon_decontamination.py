@@ -11,6 +11,7 @@ import glob
 import gzip
 
 from Bio import SeqIO
+from Bio.Seq import Seq
 
 #GENERAL USE SCRIPTS SECTION
 def flush_dir(parent_dir, *dirnames):
@@ -504,17 +505,40 @@ def find_common_subsequence(fasta_file):
 		return shortest_sequence
 
 def find_longest_sequence_length(fastq_file):
-	max_length = 0
-	counter = 0 #There is no need to loop through the whole file. Once the max_length has remained stable over 99 iteration, the size of the read is fairly certain. Break the loop.
-	with gzip.open(fastq_file, 'rt') as file:
-		for line_num, line in enumerate(file, start=1):
-			if line_num % 4 == 2:
-				sequence_length = len(line.strip())
-				max_length = max(sequence_length, max_length)
-				counter = counter + 1 if sequence_length >= max_length else 0
-				if counter == 99:
-					break
-	return max_length
+	"""
+	Finds the longest sequence length in a FASTQ file.
+
+	This function reads through a gzipped FASTQ file and determines the length
+	of the longest sequence. To optimize performance, it stops reading the file
+	once the longest sequence length has remained unchanged over 999 iterations
+	(or the end of the file has been reached).
+
+	Parameters:
+	fastq_file (str): The path to the gzipped FASTQ file.
+
+	Returns:
+	int: The length of the longest sequence found in the FASTQ file.
+	"""
+
+	max_len = 0
+	counter = 0 #There is no need to loop through the whole file. Once the max_length has remained stable over 999 iteration, the size of the read is fairly certain. Break the loop.
+	with gzip.open(fastq_file, 'rt') as infile:
+		for i, line in enumerate(infile, start=1):
+			if i % 4 == 2:
+				seq_len = len(line.strip())
+				if seq_len > max_len:
+					max_len = seq_len
+					counter = 0
+				elif seq_len == max_len:
+					counter += 1
+
+			if counter > 999:
+				break
+	if counter < 999:
+		print(f"WARNING: Too few reads in {fastq_file} to confidently determine the longest sequence length.")
+		print(f"Longest sequence length assumed: {max_len}")
+
+	return max_len
 
 def remove_adapter(fasta_file, sequence_to_remove, output_file):
 	"""
@@ -525,24 +549,31 @@ def remove_adapter(fasta_file, sequence_to_remove, output_file):
 	sequence_to_remove (str): Adapter sequence to remove from each sequence.
 	output_file (str): Path to the output file where modified sequences will be written.
 	"""
-	with open(fasta_file, 'r') as input_file, open(output_file, 'w') as output_file:
-		current_sequence = ''
-		current_header = ''
+	with open(output_file, 'w') as output_handle:
+		for record in SeqIO.parse(fasta_file, "fasta"):
+			modified_sequence = str(record.seq).replace(sequence_to_remove, '')
+			record.seq = Seq(modified_sequence)
+			SeqIO.write(record, output_handle, "fasta")
 
-		for line in input_file:
-			if line.startswith('>'):
-				if current_sequence:
-					modified_sequence = current_sequence.replace(sequence_to_remove, '')
-					output_file.write(f"{current_header}\n{modified_sequence}\n")
-
-				current_header = line.strip()
-				current_sequence = ''
-			else:
-				current_sequence += line.strip()
-
-		if current_sequence:
-			modified_sequence = current_sequence.replace(sequence_to_remove, '')
-			output_file.write(f"{current_header}\n{modified_sequence}\n")
+#	with open(fasta_file, 'r') as input_file, open(output_file, 'w') as output_file:
+#		current_sequence = ''
+#		current_header = ''
+#
+#		for line in input_file:
+#			if line.startswith('>'):
+#				if current_sequence:
+#					modified_sequence = current_sequence.replace(sequence_to_remove, '')
+#					output_file.write(f"{current_header}\n{modified_sequence}\n")
+#
+#				current_header = line.strip()
+#				current_sequence = ''
+#			else:
+#				current_sequence += line.strip()
+#
+#		if current_sequence:
+#			modified_sequence = current_sequence.replace(sequence_to_remove, '')
+#			output_file.write(f"{current_header}\n{modified_sequence}\n")
+	return None
 
 def demultiplex_per_size(sampleid, fileF, fileR, pr1, pr2, res_dir, subdir, read_size_fw, read_size_rv, asv_lengths, ci, sample_dict, mismatches = 2):
 	"""
@@ -642,13 +673,14 @@ def demultiplex_per_size(sampleid, fileF, fileR, pr1, pr2, res_dir, subdir, read
 				reverse_read_len_no_primer = len(reverse_record.seq) - len_rv
 
 				#Trimgalore clips 3' ends of bad quality, which sometimes makes the record.seq shorter than the primer.
-				#In such cases, the hamming distance will fail and the read must be eliminated.
+				#In such cases the reads are too short, the hamming distance will fail and the read must be eliminated.
 				if forward_read_len_no_primer > 0 and reverse_read_len_no_primer > 0:
 					hamming_distance_fw = hamming_distance(primer_fw, str(forward_record.seq[:len_fw]))
 					hamming_distance_rv = hamming_distance(primer_rv, str(reverse_record.seq[:len_rv]))
 					if hamming_distance_fw <= mismatches and hamming_distance_rv <= mismatches:
 						usable_read_length = forward_read_len_no_primer + reverse_read_len_no_primer
-						if asv_lengths[asv] < usable_read_length - 20:
+						usable_read_length_minus_20 = usable_read_length - 20
+						if asv_lengths[asv] < usable_read_length_minus_20:
 							#Store reads with at least 10bp overlap
 							with open(output_fastq_fw_op, 'a') as output_file_fw, open(output_fastq_rv_op, 'a') as output_file_rv:
 								SeqIO.write(forward_record, output_file_fw, 'fastq')
@@ -662,12 +694,13 @@ def demultiplex_per_size(sampleid, fileF, fileR, pr1, pr2, res_dir, subdir, read
 							break
 						else:
 							#Clip and store reads with intermediate overlap (between 1 and 10bps)
-							seq_fw_tmp = forward_record.seq[:-10]
-							seq_rv_tmp = reverse_record.seq[:-10]
+							seq_fw_tmp = forward_record.seq[:-12]
+							seq_rv_tmp = reverse_record.seq[:-12]
 							forward_record_modified = forward_record.__class__(seq_fw_tmp, id=forward_record.id, description=forward_record.description)
 							reverse_record_modified = reverse_record.__class__(seq_rv_tmp, id=reverse_record.id, description=reverse_record.description)
-							forward_record_modified.letter_annotations["phred_quality"] = forward_record.letter_annotations["phred_quality"][:-10]
-							reverse_record_modified.letter_annotations["phred_quality"] = reverse_record.letter_annotations["phred_quality"][:-10]
+							forward_record_modified.letter_annotations["phred_quality"] = forward_record.letter_annotations["phred_quality"][:-12]
+							reverse_record_modified.letter_annotations["phred_quality"] = reverse_record.letter_annotations["phred_quality"][:-12]
+
 							# Write the modified sequences to output files
 							with open(output_fastq_fw_nop, 'a') as output_file_fw, open(output_fastq_rv_nop, 'a') as output_file_rv:
 								SeqIO.write(forward_record_modified, output_file_fw, 'fastq')

@@ -421,84 +421,84 @@ track_plot = as.data.frame(track[, c("merged", "merged_discarded", "filtered_dis
 
 #Subset the table to the desired experiments
 samples_order = read.csv(path_to_flist, sep = ",", header = FALSE)$V1
-track_plot = track_plot[row.names(track_plot) %in% samples_order,] 
-
-track_plot <- track_plot[order(-track_plot[,1], 
-                               -track_plot[,2], 
-                               -track_plot[,3],
-                               -track_plot[,4],
-                               -track_plot[,5],
-                               -track_plot[,6]
-                               ),]
-
-track_plot_per = sweep(track_plot, 1, rowSums(track_plot), "/")
-
-track_plot_per <- track_plot_per[order(-track_plot_per[,1], 
-                               -track_plot_per[,2], 
-                               -track_plot_per[,3],
-                               -track_plot_per[,4],
-                               -track_plot_per[,5],
-                               -track_plot_per[,6]
-),]
-
-color_vector = viridis(nrow(t(as.matrix(track_plot))), option = "D")
-
-pdf(paste0(work_dir,"/stacked_barplot.pdf"), width = 12)
-par(mar = c(14, 4, 6, 2), xpd = TRUE) # increase the bottom margin
-barplot(
-  t(as.matrix(track_plot)),
-  col = c(color_vector, "red"),
-  border = NA,
-  ylab = "Reads Count",
-  xlab = "",
-  main = "DADA2 performance - Absolute",
-  las = 2,
-  cex.names = 0.5,
-  cex.axis = 0.7,
-  cex.main = 2
-)
-
-mtext("Experiment ID", side = 1, line = 12) # lower x-axis label
-
-legend(
-  "top",
-  inset=c(0,-0.1),
-  horiz = TRUE,
-  legend = c("Merged", "Merged discarded", "Filtered discarded", "Primer discarded", "Adaptor discarded", "Original discarded"),
-  fill = c(color_vector, "red"),
-  bty = "n",
-  cex = 1
-)
-dev.off()
-
-pdf(paste0(work_dir,"/stacked_barplot_per.pdf"), width = 12)
-par(mar = c(14, 4, 6, 2), xpd = TRUE) # increase the bottom margin
-barplot(
-  t(as.matrix(track_plot_per)),
-  col = c(color_vector, "red"),
-  border = NA,
-  ylab = "Reads Percentage",
-  xlab = "",
-  main = "DADA2 performance - Percentage",
-  las = 2,
-  cex.names = 0.5,
-  cex.axis = 0.7,
-  cex.main = 2
-)
-
-mtext("Experiment ID", side = 1, line = 12) # lower x-axis label
-
-legend(
-  "top",
-  inset=c(0,-0.1),
-  horiz = TRUE,
-  legend = c("Merged", "Merged discarded", "Filtered discarded", "Primer discarded", "Adaptor discarded", "Original discarded"),
-  fill = c(color_vector, "red"),
-  bty = "n",
-  cex = 1
-)
-
-dev.off()
+#track_plot = track_plot[row.names(track_plot) %in% samples_order,] 
+#
+#track_plot <- track_plot[order(-track_plot[,1], 
+#                               -track_plot[,2], 
+#                               -track_plot[,3],
+#                               -track_plot[,4],
+#                               -track_plot[,5],
+#                               -track_plot[,6]
+#                               ),]
+#
+#track_plot_per = sweep(track_plot, 1, rowSums(track_plot), "/")
+#
+#track_plot_per <- track_plot_per[order(-track_plot_per[,1], 
+#                               -track_plot_per[,2], 
+#                               -track_plot_per[,3],
+#                               -track_plot_per[,4],
+#                               -track_plot_per[,5],
+#                               -track_plot_per[,6]
+#),]
+#
+#color_vector = viridis(nrow(t(as.matrix(track_plot))), option = "D")
+#
+#pdf(paste0(work_dir,"/stacked_barplot.pdf"), width = 12)
+#par(mar = c(14, 4, 6, 2), xpd = TRUE) # increase the bottom margin
+#barplot(
+#  t(as.matrix(track_plot)),
+#  col = c(color_vector, "red"),
+#  border = NA,
+#  ylab = "Reads Count",
+#  xlab = "",
+#  main = "DADA2 performance - Absolute",
+#  las = 2,
+#  cex.names = 0.5,
+#  cex.axis = 0.7,
+#  cex.main = 2
+#)
+#
+#mtext("Experiment ID", side = 1, line = 12) # lower x-axis label
+#
+#legend(
+#  "top",
+#  inset=c(0,-0.1),
+#  horiz = TRUE,
+#  legend = c("Merged", "Merged discarded", "Filtered discarded", "Primer discarded", "Adaptor discarded", "Original discarded"),
+#  fill = c(color_vector, "red"),
+#  bty = "n",
+#  cex = 1
+#)
+#dev.off()
+#
+#pdf(paste0(work_dir,"/stacked_barplot_per.pdf"), width = 12)
+#par(mar = c(14, 4, 6, 2), xpd = TRUE) # increase the bottom margin
+#barplot(
+#  t(as.matrix(track_plot_per)),
+#  col = c(color_vector, "red"),
+#  border = NA,
+#  ylab = "Reads Percentage",
+#  xlab = "",
+#  main = "DADA2 performance - Percentage",
+#  las = 2,
+#  cex.names = 0.5,
+#  cex.axis = 0.7,
+#  cex.main = 2
+#)
+#
+#mtext("Experiment ID", side = 1, line = 12) # lower x-axis label
+#
+#legend(
+#  "top",
+#  inset=c(0,-0.1),
+#  horiz = TRUE,
+#  legend = c("Merged", "Merged discarded", "Filtered discarded", "Primer discarded", "Adaptor discarded", "Original discarded"),
+#  fill = c(color_vector, "red"),
+#  bty = "n",
+#  cex = 1
+#)
+#
+#dev.off()
 
 #Show the barplot of length distribution
 pdf(paste0(work_dir,"/sequences_barplot.pdf"))

@@ -134,7 +134,7 @@ if (!no_reference) {
 #Produce the asvdf and seqs_df
 if (file.exists(seqfile)) {
 	seqtab <- as.matrix(fread(seqfile), rownames=1)
-  seqs <- colnames(seqtab)
+	seqs <- colnames(seqtab)
 	nsample=nrow(seqtab)
 	hapid <- paste0("ASV",1:length(seqs))
 	# DataFrame for aligning to truth set
@@ -149,74 +149,74 @@ if (file.exists(seqfile)) {
 	total_reads <- apply(seqtab_haps,2,sum, na.rm = TRUE) #Sum column wise to obtain the total number of occurrences of each ASV across samples
 	total_samples <- apply(seqtab_haps,2,function(x) sum(x != 0, na.rm = TRUE)) #Obtain the total number of samples/rows in which the ASV is present.
 	asvdf <- data.frame(hapid = hapid, #hapid in the ASV1, ASV2, ASV3, ... form.
-	                    haplength = nchar(seqs), #Length of the ASV.
+						haplength = nchar(seqs), #Length of the ASV.
 	                    total_reads = total_reads, #Total number of occurrences of each ASV across samples
 	                    total_samples = total_samples, #Total number of samples/rows in which the ASV is present.
 	                    strain = "N") #Strain column. Dummy column for the moment. See Map True Set commands 
 	asvdf$hapid <- as.character(asvdf$hapid) #This needs to be done to prevent an invalid factor level, NA generated error
 	asvdf$strain <- as.character(asvdf$strain) 
 } else {
-  stop(paste("ASV sequence table file", seqtab, "not found!"))
+	stop(paste("ASV sequence table file", seqtab, "not found!"))
 }
 
 if (!no_reference) {
 	for (p in 1:length(path_to_refseq)) {
-	  # Alignment with RefSet
-	  align_df <- seq_align(seqs_df = seqs_df, path_to_ref = path_to_refseq[p]) #This overlap will have to be modified to accomodate mixed_reads
-	  # Map True Set onto ASV summary table based on exact and inexact matches to true set
-  	df <- align_df[,c(1,4,6,7)]
-	  colnames(df) <- c("hapid", paste0("refid_", strains[p]), paste0("snv_dist_from_", strains[p]), paste0("indel_dist_from_", strains[p]))
-	  asvdf <- merge(asvdf, df, by = "hapid", sort = FALSE)
-	  #Strain = The name if the strain in which the ASV is found. Snv dist and indel dist must equal 0.
-	  snv_dist_l = as.logical(as.numeric(align_df$snv_dist) == 0)
-	  indel_dist_l = as.logical(as.numeric(align_df$indel_dist) == 0)
-	  asvdf$strain[snv_dist_l & indel_dist_l] <- as.character(strains[p]) #If a strain[p] has alredy being declared, this step will overwrite it.
+		# Alignment with RefSet
+		align_df <- seq_align(seqs_df = seqs_df, path_to_ref = path_to_refseq[p]) #This overlap will have to be modified to accomodate mixed_reads
+		# Map True Set onto ASV summary table based on exact and inexact matches to true set
+  		df <- align_df[,c(1,4,6,7)]
+		colnames(df) <- c("hapid", paste0("refid_", strains[p]), paste0("snv_dist_from_", strains[p]), paste0("indel_dist_from_", strains[p]))
+		asvdf <- merge(asvdf, df, by = "hapid", sort = FALSE)
+		#Strain = The name if the strain in which the ASV is found. Snv dist and indel dist must equal 0.
+		snv_dist_l = as.logical(as.numeric(align_df$snv_dist) == 0)
+		indel_dist_l = as.logical(as.numeric(align_df$indel_dist) == 0)
+		asvdf$strain[snv_dist_l & indel_dist_l] <- as.character(strains[p]) #If a strain[p] has alredy being declared, this step will overwrite it.
 	}
-  
-  #Filter against SNV filter
-    if (file.exists(filter_file)) {
-      VariantCounts <- fread(filter_file)
+  	#Filter against SNV filter
+	if (file.exists(filter_file)) {
+    	VariantCounts <- fread(filter_file)
   		asvdf$snv_filter <- NA
-    	# For Sliding edit distance and length based filter
+		# For Sliding edit distance and length based filter
   		for (i in 1:nrow(asvdf)) {
-  		  refid <- asvdf[i,paste0("refid_", strains[1])]
-  		  #hapdist = the snv distance of the haplotype
-      	hapdist <- asvdf[i,paste0("snv_dist_from_", strains[1])]
-      	#tardist = the variant counts Ref Sequence that matches best the ASV
+  			refid <- asvdf[i, paste0("refid_", strains[1])]
+  			#hapdist = the snv distance of the haplotype
+			hapdist <- asvdf[i, paste0("snv_dist_from_", strains[1])]
+			#tardist = the variant counts Ref Sequence that matches best the ASV
   			tardist <- VariantCounts[c(VariantCounts$id == refid),2]
 			if (hapdist <= tardist) {
-    			sfil <- "PASS"
+    				sfil <- "PASS"
   			} else {
-    			sfil <- "FAIL"
+    				sfil <- "FAIL"
    			}
   			asvdf$snv_filter[i] <- sfil #The haplotype is way too distant from the target ASV, even after allowing the SNV filter changes.
-    	}
+    		}
   	} else {
   		warning(paste("File",filter_file,"not found!. Skipping SNV based filtering.."))
   	}
-  
-  #Filter against indel criteria
-  if (file.exists(indel_filter)) {
+
+	#Filter against indel criteria
+	if (file.exists(indel_filter)) {
   		Indelcutoff <- fread(indel_filter)
-		} else {
+	} else {
    		Indelcutoff <- as.numeric(indel_filter)
   	}
+
   	if (is.na(Indelcutoff)) {
   		warning("INDEL based filter threshold argument not valid. Using default proportion of +-90%..")
   		Indelcutoff <- 0.90
   	}
     
-		asvdf$indel_filter <- NA
-		refseq <- toupper(sapply(read.fasta(path_to_refseq[1]),c2s))
+	asvdf$indel_filter <- NA
+	refseq <- toupper(sapply(read.fasta(path_to_refseq[1]), c2s))
   	for (i in 1:nrow(asvdf)) {
   		haplen <- nchar(as.character(seqs_df$sequence[i]))
+  		refid <- asvdf[i, paste0("refid_", strains[1])]
   		tarlen <- nchar(refseq[refid])
   		lprop <- as.numeric(haplen/tarlen)
   		
-  		refid <- asvdf[i,paste0("refid_",strains[1])]
   		########This if statement processes the indel cutoff when provided with a table.
   		if (length(Indelcutoff) != 1) {
-  			ind <- Indelcutoff[c(Indelcutoff[,1] == refid),2]
+  			ind <- Indelcutoff[c(Indelcutoff[,1] == refid), 2]
   		} else {
   			ind <- Indelcutoff
   		}
@@ -227,31 +227,26 @@ if (!no_reference) {
   			ifil <- "PASS"
   		}
   		asvdf$indel_filter[i] <- ifil #The sample ASV is way shorter or way longer than the reference ASV
-		}
+	}
 }
-  
-#asvdf_backup = asvdf
-#asvdf = asvdf_backup 
 
 #Add the bimera information by matching the bimera table to asvdf
-
 if (file.exists(bimera)) {
-  bimeras <- fread(bimera)
-  #Remove from the bimera list the ASV that failed adjustment
-  new_filename <- "correctedASV.txt"
-  new_directory <- "DADA2_NOP"
-  directory_path <- dirname(bimera)
-  correctedASV_path <- file.path(directory_path, new_directory, new_filename)
-  
-  if(file.exists(correctedASV_path)){
-    correctedASV = read.csv("Results/DADA2_NOP/correctedASV.txt", sep = "\t")
-    asv_list = correctedASV$ASV[is.na(correctedASV$correctedASV)]
-    bimeras = bimeras[!bimeras$sequence %in% asv_list,]
-  }
-  
-  asvdf$bimera = bimeras$bimera
+	#Remove from the bimera list the ASV that failed adjustment
+	bimeras <- fread(bimera)
+	new_filename <- "correctedASV.txt"
+	new_directory <- "DADA2_NOP"
+	directory_path <- dirname(bimera)
+	correctedASV_path <- file.path(directory_path, new_directory, new_filename)
+
+	if(file.exists(correctedASV_path)){
+		correctedASV = read.csv("Results/DADA2_NOP/correctedASV.txt", sep = "\t")
+		asv_list = correctedASV$ASV[is.na(correctedASV$correctedASV)]
+		bimeras = bimeras[!bimeras$sequence %in% asv_list,]
+	}
+	asvdf$bimera = bimeras$bimera
 } else {
-  warning(paste("File", bimera, "not found. Skipping bimera flag.."))
+	warning(paste("File", bimera, "not found. Skipping bimera flag.."))
 }
 
 
@@ -262,7 +257,7 @@ write.table(asvdf, file = output, sep = "\t", quote = FALSE, row.names = FALSE)
 
 #A fasta file with the ASV with identifiers as ASV1, ASV2, ASV3, ...
 if (fasta) {
-  write.fasta(sapply(seqs, s2c), names = hapid, file.out = paste0(dirname(output),"/ASVSeqs.fasta"), nbchar = 600)
+	write.fasta(sapply(seqs, s2c), names = hapid, file.out = paste0(dirname(output),"/ASVSeqs.fasta"), nbchar = 600)
 }
 
 print("Leaving PostProc")

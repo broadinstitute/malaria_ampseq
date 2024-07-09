@@ -35,7 +35,8 @@ def main():
 	parser.add_argument('--repo', action="store_true", help="Specify if the reports must be created.")
 	parser.add_argument('--contamination', action="store_true", help="Specify if contamination detection is performed.")
 	parser.add_argument('--adaptor_removal', action="store_true", help="Specify if adaptor removal needed.")
-	parser.add_argument('--separate_reads', action="store_true", help="Specify if reads must be separated by size.")
+	parser.add_argument('--demultiplex', action="store_true", help="Specify if reads must be separated by size.")
+	parser.add_argument('--demultiplexed', action="store_true", help="Specify if reads have been demultiplexed.")
 	parser.add_argument('--primer_removal', action="store_true", help="Specify if primer removal needed.")
 	parser.add_argument('--dada2', action="store_true", help="Specifiy if standard preprocess merge with DADA2 is performed.")
 	parser.add_argument('--postproc_dada2', action="store_true", help="Specifiy if postProcess of DADA2 results is perfomed.")
@@ -56,7 +57,7 @@ def main():
 		path_to_flist = config_inputs['path_to_flist']
 		pr1 = config_inputs['pr1']
 		pr2 = config_inputs['pr2']
-		reference1 = config_inputs['reference1']
+		reference = config_inputs['reference']
 		if 'reference2'	in config_inputs.keys(): reference2 = config_inputs['reference2']
 		if 'path_to_snv' in config_inputs.keys(): path_to_snv = config_inputs['path_to_snv']
 		if 'pattern_fw' in config_inputs.keys(): pattern_fw = config_inputs['pattern_fw']
@@ -84,18 +85,8 @@ def main():
 		if 'include_failed' in config_inputs.keys(): include_failed = eval(config_inputs['include_failed'])
 		if 'exclude_bimeras' in config_inputs.keys(): exclude_bimeras = eval(config_inputs['exclude_bimeras'])
 		if 'verbose' in config_inputs.keys(): verbose = eval(config_inputs['verbose'])
-		if 'adapter' in config_inputs.keys(): adapter = eval(config_inputs['adapter'])
 
 	### PREPARE OUTPUT DIRECTORIES
-
-	print("Watermark 2")
-	print("Here are the inputs")
-	print(config_inputs.keys())
-
-	print("Here are the references")
-	print(reference1)
-	print(reference2)
-
 	#Generate the path to the Results directory.
 	global res_dir
 	global rep_dir
@@ -167,42 +158,42 @@ def main():
 			slist = sample.split()
 			ad.extract_bbmergefields(slist[0], slist[1], slist[3], path_to_flist, res_dir, rep_dir, "Merge", args.terra)
 
-	#Determine if files must be cleaned from contamination. Note that running this protocol will regenerate, 
-	#Fq_Metadata and AdaptorRem.
-	if args.contamination and args.dada2:
-		print("Making files with no contaminating reads")
-		meta = open(os.path.join(res_dir, "Fq_metadata", "rawfilelist.tsv"), 'r')
-		samples = meta.readlines()
-		ad.flush_dir(res_dir, "Clean_Data_Repo")
-		for sample in samples:
-			slist = sample.split()
-			tsv_name = slist[0]+"_final.tsv"
-			path_to_match_report = os.path.join(rep_dir, "Merge", tsv_name)
-			if os.path.isfile(path_to_match_report):	
-				print(path_to_match_report)
-				path_outfile_r1 = os.path.join(res_dir, "Clean_Data_Repo", slist[0]+'_L001_R1_001.fastq')
-				path_outfile_r2 = os.path.join(res_dir, "Clean_Data_Repo", slist[0]+'_L001_R2_001.fastq')
-				ad.filter_fastq_by_read_names(slist[1], slist[2], path_to_match_report, path_outfile_r1, path_outfile_r2)
-			else:	
-				print("File is empty")
-				print(path_to_match_report)
+#	#Determine if files must be cleaned from contamination. Note that running this protocol will regenerate, 
+#	#Fq_Metadata and AdaptorRem.
+#	if args.contamination and args.dada2:
+#		print("Making files with no contaminating reads")
+#		meta = open(os.path.join(res_dir, "Fq_metadata", "rawfilelist.tsv"), 'r')
+#		samples = meta.readlines()
+#		ad.flush_dir(res_dir, "Clean_Data_Repo")
+#		for sample in samples:
+#			slist = sample.split()
+#			tsv_name = slist[0]+"_final.tsv"
+#			path_to_match_report = os.path.join(rep_dir, "Merge", tsv_name)
+#			if os.path.isfile(path_to_match_report):	
+#				print(path_to_match_report)
+#				path_outfile_r1 = os.path.join(res_dir, "Clean_Data_Repo", slist[0]+'_L001_R1_001.fastq')
+#				path_outfile_r2 = os.path.join(res_dir, "Clean_Data_Repo", slist[0]+'_L001_R2_001.fastq')
+#				ad.filter_fastq_by_read_names(slist[1], slist[2], path_to_match_report, path_outfile_r1, path_outfile_r2)
+#			else:	
+#				print("File is empty")
+#				print(path_to_match_report)
+#
+#		ad.flush_dir(res_dir, "Fq_metadata")
+#		ad.create_meta(os.path.join(res_dir, "Clean_Data_Repo"), res_dir, "Fq_metadata", "rawfilelist.tsv", pattern_fw, pattern_rv)
+#
+#		print("Removing adaptors of clean read set")
+#		ad.flush_dir(res_dir, "AdaptorRem")
+#		meta = open(os.path.join(res_dir, "Fq_metadata", "rawfilelist.tsv"), 'r')
+#		samples = meta.readlines()
+#		
+#		for sample in samples:
+#			slist = sample.split()
+#			ad.adaptor_rem(slist[0], slist[1], slist[2], res_dir, "AdaptorRem")
+#	
+#		ad.create_meta(os.path.join(res_dir, "AdaptorRem"), res_dir, "AdaptorRem", "adaptorrem_meta.tsv",
+#			pattern_fw="*_val_1.fq.gz", pattern_rv="*_val_2.fq.gz")
 
-		ad.flush_dir(res_dir, "Fq_metadata")
-		ad.create_meta(os.path.join(res_dir, "Clean_Data_Repo"), res_dir, "Fq_metadata", "rawfilelist.tsv", pattern_fw, pattern_rv)
-
-		print("Removing adaptors of clean read set")
-		ad.flush_dir(res_dir, "AdaptorRem")
-		meta = open(os.path.join(res_dir, "Fq_metadata", "rawfilelist.tsv"), 'r')
-		samples = meta.readlines()
-		
-		for sample in samples:
-			slist = sample.split()
-			ad.adaptor_rem(slist[0], slist[1], slist[2], res_dir, "AdaptorRem")
-	
-		ad.create_meta(os.path.join(res_dir, "AdaptorRem"), res_dir, "AdaptorRem", "adaptorrem_meta.tsv",
-			pattern_fw="*_val_1.fq.gz", pattern_rv="*_val_2.fq.gz")
-
-	if args.separate_reads:
+	if args.demultiplex:
 		print("Entering demultiplexing algorithm")
 		meta = open(os.path.join(res_dir, "AdaptorRem", "adaptorrem_meta.tsv"), 'r')
 		samples = meta.readlines()
@@ -226,7 +217,7 @@ def main():
 		all_equal_rv = len(set(p_rv)) == 1
 		if all_equal_fw and all_equal_rv:
 			print("Are all values in the top 95% percentile of read size equal?", all_equal_fw and all_equal_rv)
-			print("The following values will be used as the standard size of the reads in this run:")
+			print("The following values will be used as the standard read sizes in this run:")
 		else:
 			print("Are all values in the top 95% percentile of read size equal?", all_equal_fw and all_equal_rv)
 			print("Largest values found for the forward and reverse read will be used. These values are:")
@@ -234,15 +225,12 @@ def main():
 		read_size_rv = sorted(lengths_rv)[-1]
 		print("Forward read:", read_size_fw)
 		print("Reverse read:", read_size_rv)
-		print("If these sizes, do not match the expected size of your technology, consider rerurring the pipeline after manually providing the size of your reads")
+		#print("If these sizes do not match the expected size of your technology, consider rerurring the pipeline after manually providing the size of your reads")
+
 		#Get and remove the adapter sequence
 		print("Removing the adapter sequence from the primers")
-		if adapter is None:
-			adapter_fw = ad.find_common_subsequence(pr1)
-			adapter_rv = ad.find_common_subsequence(pr2)
-		else:
-			adapter_fw = adapter
-			adapter_rv = adapter
+		adapter_fw = ad.find_common_subsequence(pr1)
+		adapter_rv = ad.find_common_subsequence(pr2)
 		print("Adapter forward:", adapter_fw)
 		print("Adapter reverse:", adapter_rv)
 		ad.remove_adapter(pr1, adapter_fw, 'primer_fw_no_adapter.fasta')
@@ -250,13 +238,16 @@ def main():
 
 		#Get the size of the reference ASVs
 		print("Getting the size of the reference ASV")
-		if os.path.exists(reference1):
-			ref_files = [reference1]
+		if os.path.exists(reference):
+			ref_files = [reference]
 			if os.path.exists(reference2):
 				ref_files.append(reference2)
 		else:
 			sys.exit('At the least one reference is necessary to separate reads according to ASV target size.')
+
+		#Get the ASV sizes
 		asv_lengths = {}
+
 		for ref_file in ref_files:
 			for record in SeqIO.parse(ref_file, "fasta"):
 				if record.id not in asv_lengths:
@@ -277,8 +268,11 @@ def main():
 		illumina_well = [f"{char}{num}" for char in list("ABCDEFGH") for num in range(1, 13)]*2
 		sample_dict = dict(zip(sample_number, illumina_well))
 
+		print(sample_dict)
+
 		for sample in samples:
 			slist = sample.split()
+			print(slist)
 			ad.demultiplex_per_size(slist[0], slist[1], slist[2], 'primer_fw_no_adapter.fasta', 'primer_rv_no_adapter.fasta', res_dir, "Demultiplex_by_Size", read_size_fw, read_size_rv, asv_lengths, args.contamination, sample_dict)
 		
 		#Create Metafile for reads with no overlap
@@ -286,19 +280,37 @@ def main():
 			pattern_fw="*_nop_L001_R1_001.fastq.gz", pattern_rv="*_nop_L001_R2_001.fastq.gz")
 		ad.create_meta(os.path.join(res_dir, "Demultiplex_by_Size"), res_dir, "Demultiplex_by_Size", "demux_op_meta.tsv",
 			pattern_fw="*_op_L001_R1_001.fastq.gz", pattern_rv="*_op_L001_R2_001.fastq.gz")
+	else:
+		print("Skipping demultiplexing algorithm")
+		meta = open(os.path.join(res_dir, "AdaptorRem", "adaptorrem_meta.tsv"), 'r')
+		samples = meta.readlines()
+		ad.flush_dir(res_dir, "Demultiplex_by_Size")
 
+		#Get and remove the adapter sequence
+		print("Removing the adapter sequence from the primers")
+		adapter_fw = ad.find_common_subsequence(pr1)
+		adapter_rv = ad.find_common_subsequence(pr2)
+		print("Adapter forward:", adapter_fw)
+		print("Adapter reverse:", adapter_rv)
+		ad.remove_adapter(pr1, adapter_fw, 'primer_fw_no_adapter.fasta')
+		ad.remove_adapter(pr2, adapter_rv, 'primer_rv_no_adapter.fasta')
+
+		for sample in samples:
+			slist = sample.split()
+			output_fastq_fw_op = os.path.join(res_dir, "Demultiplex_by_Size", f"{slist[0]}_op_L001_R1_001.fastq.gz")
+			output_fastq_rv_op = os.path.join(res_dir, "Demultiplex_by_Size", f"{slist[0]}_op_L001_R2_001.fastq.gz")
+			os.system(f"cp {slist[1]} {output_fastq_fw_op}")
+			os.system(f"cp {slist[2]} {output_fastq_rv_op}")
+			ad.create_meta(os.path.join(res_dir, "Demultiplex_by_Size"), res_dir, "Demultiplex_by_Size", "demux_op_meta.tsv",
+				pattern_fw="*_op_L001_R1_001.fastq.gz", pattern_rv="*_op_L001_R2_001.fastq.gz")
+		
 	#Remove primers
 	#For a set where all reads have overlap
 	if args.primer_removal:
 		print("Removing primers")
 		#Extract primer for the target without amplicons
-		# Read input fasta file
-		if args.contamination:
-			fw = 'primer_fw_no_adapter.fasta'
-			rv = 'primer_rv_no_adapter.fasta'
-		else:
-			fw = 'primers_fw.fasta'
-			rv = 'primers_rv.fasta'
+		fw = 'primer_fw_no_adapter.fasta'
+		rv = 'primer_rv_no_adapter.fasta'
 			
 		records_fw = SeqIO.parse(fw, 'fasta')
 		common_subsequences = ad.find_common_subsequences(records_fw)
@@ -310,15 +322,16 @@ def main():
 		ad.flush_dir(res_dir, "PrimerRem")
 
 		#Trim primers off non-overlapping targets
-		meta = open(os.path.join(res_dir, "Demultiplex_by_Size", "demux_nop_meta.tsv"), 'r')
-		samples = meta.readlines()
-		for sample in samples:
-			slist = sample.split()
-			ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", "amp_primer_fw.fasta", "amp_primer_rv.fasta", "mixed_nop")
+		if args.demultiplex:
+			meta = open(os.path.join(res_dir, "Demultiplex_by_Size", "demux_nop_meta.tsv"), 'r')
+			samples = meta.readlines()
+			for sample in samples:
+				slist = sample.split()
+				ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", "amp_primer_fw.fasta", "amp_primer_rv.fasta", "mixed_nop")
 
-		#Metafile for trimmed non-op target reads
-		ad.create_meta(os.path.join(res_dir, "PrimerRem"), res_dir, "PrimerRem", "mixed_nop_prim_meta.tsv", 
-			pattern_fw="*_mixed_nop_1.fq.gz", pattern_rv="*_mixed_nop_2.fq.gz")
+			#Metafile for trimmed non-op target reads
+			ad.create_meta(os.path.join(res_dir, "PrimerRem"), res_dir, "PrimerRem", "mixed_nop_prim_meta.tsv", 
+				pattern_fw="*_mixed_nop_1.fq.gz", pattern_rv="*_mixed_nop_2.fq.gz")
 
 		#Trim primers off overlapping targets
 		meta = open(os.path.join(res_dir, "Demultiplex_by_Size", "demux_op_meta.tsv"), 'r')
@@ -342,21 +355,22 @@ def main():
 		seqtab_op = os.path.join(res_dir, 'DADA2_OP', 'seqtab.tsv')
 		bimera_op = os.path.join(res_dir, 'DADA2_OP', 'ASVBimeras.txt')
 
-		#Run DADA2 on non-op targets
-		ad.flush_dir(res_dir, "DADA2_NOP", "QProfile")
-		path_to_meta = os.path.join(res_dir, "PrimerRem", "mixed_nop_prim_meta.tsv")
-		justConcatenate=1	
-		ad.run_dada2(path_to_meta, path_to_fq, path_to_flist, Class, maxEE, trimRight, minLen, truncQ, matchIDs, max_consist, omegaA, justConcatenate, maxMismatch,saveRdata, res_dir, "DADA2_NOP", args.terra)
-		seqtab_nop = os.path.join(res_dir, 'DADA2_NOP', 'seqtab.tsv')
-		bimera_nop = os.path.join(res_dir, 'DADA2_NOP', 'ASVBimeras.txt')
+		if args.demultiplexed:
+			#Run DADA2 on non-op targets
+			ad.flush_dir(res_dir, "DADA2_NOP", "QProfile")
+			path_to_meta = os.path.join(res_dir, "PrimerRem", "mixed_nop_prim_meta.tsv")
+			justConcatenate=1	
+			ad.run_dada2(path_to_meta, path_to_fq, path_to_flist, Class, maxEE, trimRight, minLen, truncQ, matchIDs, max_consist, omegaA, justConcatenate, maxMismatch,saveRdata, res_dir, "DADA2_NOP", args.terra)
+			seqtab_nop = os.path.join(res_dir, 'DADA2_NOP', 'seqtab.tsv')
+			bimera_nop = os.path.join(res_dir, 'DADA2_NOP', 'ASVBimeras.txt')
 
 		#ASV modification block for non-op targets and merge two ASV tables
-		if os.path.exists(reference1):
+		if os.path.exists(reference) and args.demultiplexed:
 			if args.terra:
 				path_to_program = os.path.join("/", "Code/adjustASV.R")
 			else:
 				path_to_program = os.path.join("Code/adjustASV.R")
-			adjASV = ['Rscript', path_to_program, '-s', seqtab_nop, '-ref', reference1,
+			adjASV = ['Rscript', path_to_program, '-s', seqtab_nop, '-ref', reference,
 			'-dist', adjust_mode,
 			'-o', os.path.join(res_dir, 'DADA2_NOP', 'correctedASV.txt')]
 			print(adjASV)
@@ -365,13 +379,21 @@ def main():
 			seqtab_corrected = os.path.join(res_dir, 'DADA2_NOP', 'seqtab_corrected.tsv')
 			seqtab = ad.merge_seqtab(seqtab_op, seqtab_corrected)
 			bimera = ad.merge_bimeras(bimera_op, bimera_nop)
-		else:
+			seqtab.fillna(0).to_csv(os.path.join(res_dir, 'seqtab.tsv'), sep = "\t", index=False)
+			bimera.to_csv(os.path.join(res_dir, 'ASVBimeras.txt'), sep = "\t", index=False)
+		elif args.demultiplexed:
 			print('--reference file not found. skipping ASV correction..')
 			seqtab = ad.merge_seqtab(seqtab_op, seqtab_nop)
 			bimera = ad.merge_bimeras(bimera_op, bimera_nop)
-
-		seqtab.to_csv(os.path.join(res_dir, 'seqtab.tsv'), sep = "\t", index=False)
-		bimera.to_csv(os.path.join(res_dir, 'ASVBimeras.txt'), sep = "\t", index=False)
+			seqtab.fillna(0).to_csv(os.path.join(res_dir, 'seqtab.tsv'), sep = "\t", index=False)
+			bimera.to_csv(os.path.join(res_dir, 'ASVBimeras.txt'), sep = "\t", index=False)
+		else:
+			print("No non-op targets found. Skipping ASV merging")
+			print("Creating placeholder files for non-op targets")
+			seqtab_final = os.path.join(res_dir, 'seqtab.tsv')
+			bimera_final = os.path.join(res_dir, 'ASVBimeras.txt')
+			os.system(f"cp {seqtab_op} {seqtab_final}")
+			os.system(f"cp {bimera_op} {bimera_final}")
 
 	if args.postproc_dada2:	
 		print("Performing PostProc")	
@@ -384,18 +406,23 @@ def main():
 		else:
 			path_to_program = os.path.join("Code/postProc_dada2.R")
 
+		if "path_to_snv" not in locals():
+			path_to_snv = "No_File"
+		if "reference2" not in locals():
+			reference2 = "No_File"
+
 		postProc = ['Rscript', path_to_program, 
 				'-s', path_to_seqtab, 
 				'-b', os.path.join(res_dir, 'ASVBimeras.txt'),
 				'-snv', os.path.join(path_to_snv),
-				'--indel_filter', '0.895',
+				'--indel_filter', '0.01',
 				'-o', os.path.join(res_dir, 'PostProc_DADA2', 'ASVTable.txt'),
 				'--fasta']
 
 		if no_ref == 'True':
 			postProc.extend(['-no_ref'])
 		else:
-			postProc.extend(['--reference', reference1, '--strain', strain])
+			postProc.extend(['--reference', reference, '--strain', strain])
 			if os.path.exists(reference2):
 				postProc.extend(['--reference2', reference2, '--strain2', strain2])
 
@@ -414,7 +441,7 @@ def main():
 		path_to_table = os.path.join(res_dir, "PostProc_DADA2", "ASVTable.txt") #ASV table from DADA2 pipeline
 		path_to_out = os.path.join(res_dir, "CIGARVariants_Bfilter.out.tsv") #Output seqtab tsv file with amplicon/variant counts
 		path_asv_to_cigar = os.path.join(res_dir, "ASV_to_CIGAR", "ASV_to_CIGAR.out.txt") #Output file for ASV -> CIGAR string table 
-		path_to_amp_db = reference1 #Amplicon sequence fasta file
+		path_to_amp_db = reference #Amplicon sequence fasta file
 		path_to_alignments = os.path.join(res_dir, "ASV_to_CIGAR", "alingments") #Directory to store ASV alignment files
 
 		print(f"INFO: Loading {path_to_amp_db}")

@@ -33,6 +33,7 @@ search_reverse = function(sequence, reverse_barcode_original, reversefound, reve
 }
 
 match_fun = function(sample_id, sequence, barcodes, dist) {
+  browser()
   forwardfound = FALSE
   reversefound = FALSE
   forward_distance = NA

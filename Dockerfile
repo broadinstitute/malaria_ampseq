@@ -42,8 +42,11 @@ ENV PATH=/root/google-cloud-sdk/bin/:${PATH}
 RUN apt-get install -y gcc python3-dev python3-setuptools && pip3 uninstall -y crcmod && pip3 install --no-cache-dir -U crcmod
 
 COPY Code Code
+RUN chmod 755 Code/file_staging.sh
 
 #COPY master.sh master.sh
 #COPY config.json config.json
 #RUN chmod 755 master.sh
 #RUN apt-get install -y vim
+
+RUN apt-get update && apt-get install -y vim --fix-missing

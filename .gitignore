@@ -1,0 +1,6 @@
+Code_B/
+.DS_Store
+Code/.Rapp.history
+Code/.Rhistory
+Code/__pycache__/asv_to_cigar.cpython-37.pyc
+Code/__pycache__/amplicon_decontamination.cpython-37.pyc

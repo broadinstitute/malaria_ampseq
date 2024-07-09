@@ -14,6 +14,7 @@ if (!require("stringdist")) {
   library("stringdist")
 }
 
+if (FALSE) {
 # Custom filtering, denoising parameters (if not default) can be provided as a separate config file?
 parser <- ArgumentParser()
 parser$add_argument("-p", "--path_to_fastq", help="Path to merged fastq file (required)")
@@ -27,6 +28,12 @@ fastq_file <- args$path_to_fastq
 work_dir <- args$dir
 path_to_flist <- args$barcodes
 terra = args$terra
+}
+
+fastq_file = '~/Desktop/Results/Merge/16pA01R1_S1_merged.fastq'
+work_dir = '~/Desktop/Report/Merge'
+path_to_flist = "~/Desktop/Test_Reduced_Datasets/Keltonlyci_test/barcodes_matches.csv"
+terra = FALSE
 
 print(paste0("Processing file: ", fastq_file))
 write(paste0("Processing file: ", fastq_file), stderr())
@@ -42,7 +49,6 @@ if (terra) {
 #source(paste0(file.path(dirname(dirname(work_dir)), "Code", "matching_functions.R")))
 barcodes = read.csv(path_to_flist, sep = ",", header = TRUE)
 dist = 2
-
 
 # Open the Fastq file and count the number of reads
 con <- file(fastq_file, "r")
