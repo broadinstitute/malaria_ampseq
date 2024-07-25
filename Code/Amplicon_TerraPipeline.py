@@ -126,7 +126,6 @@ def main():
 	#Remove adaptors
 	#Most sequences must be adaptor free; just in case, run this step to eliminate any lingering adaptors.
 	if args.adaptor_removal:
-		print("Watermark inside DADA2 3 - 1")
 		print("Removing adaptors")
 		ad.flush_dir(res_dir, "AdaptorRem")
 		meta = open(os.path.join(res_dir, "Fq_metadata", "rawfilelist.tsv"), 'r')
@@ -195,7 +194,6 @@ def main():
 #			pattern_fw="*_val_1.fq.gz", pattern_rv="*_val_2.fq.gz")
 #
 	if args.demultiplex:
-		print("Watermark inside DADA2 4 - 2")
 		print("Entering demultiplexing algorithm")
 		meta = open(os.path.join(res_dir, "AdaptorRem", "adaptorrem_meta.tsv"), 'r')
 		samples = meta.readlines()
@@ -309,7 +307,6 @@ def main():
 	#Remove primers
 	#For a set where all reads have overlap
 	if args.primer_removal:
-		print("Watermark inside DADA2 4 - 3")
 		print("Removing primers")
 		#Extract primer for the target without amplicons
 		fw = 'primer_fw_no_adapter.fasta'
@@ -350,7 +347,6 @@ def main():
 #	#For a set that mixes reads with and without overlap
 	if args.dada2:
 		print("Running DADA2")
-		print("Watermark inside DADA2 4 - 4")
 		#Run DADA2 on op targets
 		ad.flush_dir(res_dir, "DADA2_OP", "QProfile")
 		path_to_meta = os.path.join(res_dir, "PrimerRem", "mixed_op_prim_meta.tsv")
@@ -359,7 +355,6 @@ def main():
 		seqtab_op = os.path.join(res_dir, 'DADA2_OP', 'seqtab.tsv')
 		bimera_op = os.path.join(res_dir, 'DADA2_OP', 'ASVBimeras.txt')
 
-		print("Watermark inside DADA2 4 - 5")
 		if args.demultiplexed:
 			#Run DADA2 on non-op targets
 			ad.flush_dir(res_dir, "DADA2_NOP", "QProfile")
@@ -393,16 +388,13 @@ def main():
 			seqtab.fillna(0).to_csv(os.path.join(res_dir, 'seqtab.tsv'), sep = "\t", index=False)
 			bimera.to_csv(os.path.join(res_dir, 'ASVBimeras.txt'), sep = "\t", index=False)
 		else:
-			print("Watermark inside DADA2 4 - 6")
 			print("No non-op targets found. Skipping ASV merging")
 			print("Creating placeholder files for non-op targets")
 			seqtab_final = os.path.join(res_dir, 'seqtab.tsv')
 			bimera_final = os.path.join(res_dir, 'ASVBimeras.txt')
 			os.system(f"cp {seqtab_op} {seqtab_final}")
 			os.system(f"cp {bimera_op} {bimera_final}")
-		
-		print("Watermark inside DADA2 4 - 7")
-#
+
 #	if args.postproc_dada2:	
 #		print("Performing PostProc")	
 #		ad.flush_dir(res_dir, "PostProc_DADA2")
