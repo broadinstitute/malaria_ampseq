@@ -14,7 +14,7 @@ if (!require("stringdist")) {
   library("stringdist")
 }
 
-if (FALSE) {
+#if (FALSE) {
 # Custom filtering, denoising parameters (if not default) can be provided as a separate config file?
 parser <- ArgumentParser()
 parser$add_argument("-p", "--path_to_fastq", help="Path to merged fastq file (required)")
@@ -24,16 +24,16 @@ parser$add_argument("--terra", action='store_true', help="State whether the scri
 args <- parser$parse_args()
 
 # Universal parameters
-fastq_file <- args$path_to_fastq
-work_dir <- args$dir
-path_to_flist <- args$barcodes
-terra = args$terra
-}
+# fastq_file <- args$path_to_fastq
+# work_dir <- args$dir
+# path_to_flist <- args$barcodes
+# terra = args$terra
+# }
 
-fastq_file = '~/Desktop/Results/Merge/16pA01R1_S1_merged.fastq'
-work_dir = '~/Desktop/Report/Merge'
-path_to_flist = "~/Desktop/Test_Reduced_Datasets/Keltonlyci_test/barcodes_matches.csv"
-terra = FALSE
+# fastq_file = '~/Desktop/Results/Merge/16pA01R1_S1_merged.fastq'
+# work_dir = '~/Desktop/Report/Merge'
+# path_to_flist = "~/Desktop/Test_Reduced_Datasets/Keltonlyci_test/barcodes_matches.csv"
+# terra = FALSE
 
 print(paste0("Processing file: ", fastq_file))
 write(paste0("Processing file: ", fastq_file), stderr())

@@ -82,7 +82,7 @@ args <- parser$parse_args()
 #save_run = "dada2.RData"
 
 # Universal parameters
-
+print("Watermark 1")
 path_to_meta = args$path_to_meta
 path_to_data_repo = args$path_to_data_repo
 path_to_flist = args$path_to_flist

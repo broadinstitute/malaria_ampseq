@@ -23,7 +23,11 @@ params:
 
 # INTRODUCTION
 
-The subsequent report offers insights into the distribution of inline barcodes within a conventional Illumina plate consisting of 96 wells. The pipeline produces a variety of standardized plots aimed at revealing prevalent contamination patterns within the dataset. Instructions on how to read the plots are provided at the top of each plot.
+The subsequent report offers insights into the distribution of inline barcodes 
+within a conventional Illumina plate consisting of 96 wells. The pipeline 
+produces a variety of standardized plots aimed at revealing prevalent 
+contamination patterns within the dataset. Instructions on how to read the plots
+are provided at the top of each plot.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
@@ -62,71 +66,20 @@ if (!require("tidyverse")) {
   install.packages("tidyverse", repos="http://cran.rstudio.com/")
   library("tidyverse")
 }
-# if (!require("ggplate")) {
-#   install.packages("ggplate", repos="http://cran.rstudio.com/")
-#   library("ggplate")
-# }
-# if (!require("pals")) {
-#   install.packages("pals", repos="http://cran.rstudio.com/")
-#   library("pals")
-# }
-# if (!require("devtools")) {
-#   install.packages("devtools", repos="http://cran.rstudio.com/")
-#   library("devtools")
-# }
-# if (!require("ggplot2bdc")) {
-#   devtools::install_github("briandconnelly/ggplot2bdc")
-#   library("ggplot2bdc")
-# }
-# if (!require("RColorBrewer")) {
-#   install.packages("RColorBrewer", repos="http://cran.rstudio.com/")
-#   library("RColorBrewer")
-# }
-# if (!require("colorspace")) {
-#   install.packages("colorspace", repos="http://cran.rstudio.com/")
-#   library("colorspace")
-# }
-# if (!require("pals")) {
-#   install.packages("pals", repos="http://cran.rstudio.com/")
-#   library("pals")
-# }
 
-##REMOVABLE
-#if (!require("webshot2")) {
-#  install.packages("webshot2", repos="http://cran.rstudio.com/")
-#  library("webshot2")
-#}
-# if (!require("magrittr")) {
-#   install.packages("magrittr", repos="http://cran.rstudio.com/")
-#   library("magrittr")
-# }
-# if (!require("gridExtra")) {
-#   install.packages("gridExtra", repos="http://cran.rstudio.com/")
-#   library("gridExtra")
-# }
-# if (!require("grid")) {
-#   install.packages("grid", repos="http://cran.rstudio.com/")
-#   library("grid")
-# }
-# if (!require("dplyr")) {
-#   install.packages("dplyr", repos="http://cran.rstudio.com/")
-#   library("dplyr")
-# }
+# data_dir = params$data_dir
+# out_dir = params$out_dir
+# path_to_flist = params$path_to_flist
+# minreads_threshold = params$minreads_threshold
+# contamination_threshold = params$contamination_threshold
+# missing_files = params$missing_files
 
-
-data_dir = params$data_dir
-out_dir = params$out_dir
-path_to_flist = params$path_to_flist
-minreads_threshold = params$minreads_threshold
-contamination_threshold = params$contamination_threshold
-missing_files = params$missing_files
-
-# data_dir = "/Users/jar4142/Desktop/Plate_1_Results/Merge/"
-# out_dir = "/Users/jar4142/Desktop/Plate_1_Results/Report/"
-# path_to_flist = "/Users/jar4142/Desktop/Data_Repository_AmpSeq/SIMPLseq_CI/barcodes_matches_1.csv"
-# minreads_threshold = 1000
-# contamination_threshold = 0.5
-# missing_files = "/Users/jar4142/Desktop/Plate_2_Results/missing_files.tsv"
+data_dir = "/Users/jar4142/Desktop/Report/Merge/"
+out_dir = "/Users/jar4142/Desktop/Report/"
+path_to_flist = "/Users/jar4142/Desktop/Test_Reduced_Datasets/Keltonlyci_test/barcodes_matches.csv"
+minreads_threshold = 1000
+contamination_threshold = 0.5
+missing_files = "/Users/jar4142/Desktop/Results/missing_files.tsv"
 
 df = data.frame(sequence = character(),
                 abundance = integer(),
@@ -226,6 +179,12 @@ Not all categories have to be present in each well or even in each experiment. F
 #Subset the table to the desired experiments
 df = df[df$sample_id %in% samples_order,]
 
+#Remove the reads with No_barcodes. It's impossible to determine if the failure 
+#to detect barcodes is due to their absence associated with a PCR error or 
+#because the read belongs to a non-barcoded target.
+
+df = df[which(df$match_status != "No_barcodes"),]
+
 m_sample_status = table(df[,c("sample_id", "match_status")])
 m_sample_status_melted = melt(m_sample_status, id.vars=c("sample_id", "match_status"))
 
@@ -281,7 +240,7 @@ plotper = ggplot(m_sample_status_p_melted, aes(match_status, sample_id)) +
 
 ## Unsuable files
 
-As pointed out before, some file, though present in the fastq repository, may have been removed by the pipeline due to low quality or unusable data. These files are listed below amd are missing from subsequent pots an analysis.
+As pointed out before, some file, though present in the fastq repository, may have been removed by the pipeline due to low quality or unusable data. These files are listed below and are missing from subsequent pots an analysis.
 
 ```{r 'Find unusuable files', echo=FALSE}
 file_list_unusuable = barcodes_list$sample_id[!barcodes_list$sample_id %in% missing$Sample_IDs]
@@ -484,6 +443,11 @@ rownames(m_sample_status_p_melted_reshaped) = rows
 Below_Threshold_Flag = vector()
 Wrong_Barcode_Comb_Flag = vector()
 
+# The below threshold flag signals if no barcode was dominant in the well per the
+# threshold provided in contamination_threshold. Wrong barcode flag signals if
+# the most common barcode in the well corresponds or not to the expected barcode
+# for said well.
+
 for (sample in rownames(m_sample_status_p_melted_reshaped)) {
   if (!sample %in% no_mergers) {
     tmp = m_sample_status_p_melted_reshaped[sample,
@@ -507,7 +471,7 @@ for (sample in rownames(m_sample_status_p_melted_reshaped)) {
 m_sample_status_p_melted_reshaped$Below_Threshold_Flag = Below_Threshold_Flag
 m_sample_status_p_melted_reshaped$Wrong_Barcode_Comb_Flag = Wrong_Barcode_Comb_Flag
 m_sample_status_p_melted_reshaped$Flagged_well = m_sample_status_p_melted_reshaped$Productivity_Flag |
-  m_sample_status_p_melted_reshaped$Wrong_Barcode_Comb_Flag
+  m_sample_status_p_melted_reshaped$Wrong_Barcode_Comb_Flag | m_sample_status_p_melted_reshaped$Below_Threshold_Flag
 
 m_sample_status_p_melted_reshaped = m_sample_status_p_melted_reshaped[,
                                                                       !colnames(m_sample_status_p_melted_reshaped) %in% c("sample_id")]
@@ -757,6 +721,13 @@ p
 ## Wells flagged for contamination
 
 ```{r 'plot the contamination flag plate', echo=FALSE, results='hide'}
+#df_arrows <- data.frame(
+#  h = sample(1:12, 4, replace = TRUE),
+#  v = sample(1:8, 4, replace = TRUE),
+#  h_target = sample(1:12, 4, replace = TRUE),
+#  v_target = sample(1:8, 4, replace = TRUE)
+#)
+
 p = ggplot(data=df,
            aes(x=h, y=v, color=Wrong_Barcode_Comb_Flag, fill=Wrong_Barcode_Comb_Flag)) +
   geom_point(shape=21, size=16) +
@@ -782,8 +753,25 @@ p = ggplot(data=df,
         legend.position="bottom",
         plot.title = element_text(size = 16, face = "bold"))
 
+# Add each segment in df_arrows to the plot 'p' using a for loop
+# for (i in 1:nrow(df_arrows)) {
+#   p = p + geom_segment(aes(x = df_arrows$h[i], y = df_arrows$v[i], 
+#                             xend = df_arrows$h_target[i], yend = df_arrows$v_target[i]), 
+#                         arrow = arrow(length = unit(0.2, "inches")), 
+#                         color = "blue", size = 3, lineend = "round", linejoin = "round")
+# }
+
+for (i in 1:nrow(df_arrows)) {
+  p = p + annotate("segment", x = df_arrows$h[i], y = df_arrows$v[i], 
+                   xend = df_arrows$h_target[i], yend = df_arrows$v_target[i],
+                   color = "blue", size = 3,
+                   arrow = arrow(ends = "last", angle= 45, type = "closed",
+                                 length = unit(.3,"cm")))
+}
+
 options(repr.plot.width = 12, repr.plot.height = 8)
 ```
+
 
 ```{r 'display the contamination flag plate', echo=FALSE}
 p
@@ -791,7 +779,7 @@ p
 
 ## Flagged wells
 
-Well Flagged for both contamination and low productivity
+Well Flagged for both contamination, low productivity and being below threshold
 
 ```{r 'plot the general flag plate', echo=FALSE, results='hide'}
 p = ggplot(data=df,

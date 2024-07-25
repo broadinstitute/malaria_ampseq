@@ -33,7 +33,7 @@ search_reverse = function(sequence, reverse_barcode_original, reversefound, reve
 }
 
 match_fun = function(sample_id, sequence, barcodes, dist) {
-  browser()
+  #browser()
   forwardfound = FALSE
   reversefound = FALSE
   forward_distance = NA
@@ -114,7 +114,8 @@ match_fun = function(sample_id, sequence, barcodes, dist) {
         break
       }
     }  
-
+    #browser()
+    
     for (reverse in unique(barcodes$Reverse[which(barcodes$Reverse != reverse)])) {
       match_tmp = search_reverse(sequence, reverse, reversefound, reverse_distance, three_prime_end, dist)
       if (match_tmp[[4]] == TRUE) {
