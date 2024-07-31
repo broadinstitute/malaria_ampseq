@@ -395,40 +395,40 @@ def main():
 			os.system(f"cp {seqtab_op} {seqtab_final}")
 			os.system(f"cp {bimera_op} {bimera_final}")
 
-#	if args.postproc_dada2:	
-#		print("Performing PostProc")	
-#		ad.flush_dir(res_dir, "PostProc_DADA2")
-#		
-#		path_to_seqtab = os.path.join(res_dir, 'seqtab.tsv')
-#
-#		if args.terra:
-#			path_to_program = os.path.join("/", "Code/postProc_dada2.R")
-#		else:
-#			path_to_program = os.path.join("Code/postProc_dada2.R")
-#
-#		if "path_to_snv" not in locals():
-#			path_to_snv = "No_File"
-#		if "reference2" not in locals():
-#			reference2 = "No_File"
-#
-#		postProc = ['Rscript', path_to_program, 
-#				'-s', path_to_seqtab, 
-#				'-b', os.path.join(res_dir, 'ASVBimeras.txt'),
-#				'-snv', os.path.join(path_to_snv),
-#				'--indel_filter', '0.01',
-#				'-o', os.path.join(res_dir, 'PostProc_DADA2', 'ASVTable.txt'),
-#				'--fasta']
-#
-#		if no_ref == 'True':
-#			postProc.extend(['-no_ref'])
-#		else:
-#			postProc.extend(['--reference', reference, '--strain', strain])
-#			if os.path.exists(reference2):
-#				postProc.extend(['--reference2', reference2, '--strain2', strain2])
-#
-#		print(postProc)
-#		procASV = subprocess.Popen(postProc)
-#		procASV.wait()
+	#Perform postprocessing (postproc_dada2)
+	if args.postproc_dada2:
+		print("Performing post processing")
+		ad.flush_dir(res_dir, "PostProc_DADA2")
+		
+		path_to_seqtab = os.path.join(res_dir, 'seqtab.tsv')
+
+		if args.terra:
+			path_to_program = os.path.join("/", "Code/postProc_dada2.R")
+		else:
+			path_to_program = os.path.join("Code/postProc_dada2.R")
+
+		if "path_to_snv" not in locals():
+			path_to_snv = "No_File"
+		if "reference2" not in locals():
+			reference2 = "No_File"
+		
+		postProc = ['Rscript', path_to_program,
+				'-s', path_to_seqtab,
+				'-b', os.path.join(res_dir, 'ASV_Bimeras.txt'),
+				'-snv', os.path.join(path_to_snv),
+				'--indel_filter', '0.01',
+				'-o', os.path.join(res_dir, 'PostProc_DADA2', 'ASVTable.txt'),
+				'--fasta']
+		
+		if no_ref == 'True':
+			postProc.extend(['-no_ref'])
+		else:
+			postProc.extend(['--reference', reference, '--strain', strain])
+			if os.path.exists(reference2):
+				postProc.extend(['--reference2', reference2, '--strain2', strain2])
+		print(postProc)
+		procASV = subprocess.Popen(postProc)
+		procASV.wait()
 #
 #	#ASV to CIGAR
 #	#Convert ASVs from DADA2 pipeline to pseudo-CIGAR strings.

@@ -91,7 +91,7 @@ output <- args$output
 seqfile <- args$seqtab
 path_to_refseq <- args$reference
 strains <- args$strain
-parallel = args$parallel
+parallel = args$parallel  #Add parallel option later
 path_to_refseq2 = args$reference2
 strain2 = args$strain2
 no_reference = args$no_reference
