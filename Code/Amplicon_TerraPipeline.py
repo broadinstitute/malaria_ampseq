@@ -414,7 +414,7 @@ def main():
 		
 		postProc = ['Rscript', path_to_program,
 				'-s', path_to_seqtab,
-				'-b', os.path.join(res_dir, 'ASV_Bimeras.txt'),
+				'-b', os.path.join(res_dir, 'ASVBimeras.txt'),
 				'-snv', os.path.join(path_to_snv),
 				'--indel_filter', '0.01',
 				'-o', os.path.join(res_dir, 'PostProc_DADA2', 'ASVTable.txt'),
