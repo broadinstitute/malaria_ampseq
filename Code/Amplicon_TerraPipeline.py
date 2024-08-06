@@ -441,6 +441,7 @@ def main():
 		path_to_table = os.path.join(res_dir, "PostProc_DADA2", "ASVTable.txt") #ASV table from DADA2 pipeline
 		path_to_out = os.path.join(res_dir, "CIGARVariants_Bfilter.out.tsv") #Output seqtab tsv file with amplicon/variant counts
 		path_asv_to_cigar = os.path.join(res_dir, "ASV_to_CIGAR", "ASV_to_CIGAR.out.txt") #Output file for ASV -> CIGAR string table 
+		path_to_zero_read_samples = os.path.join(res_dir, "ASV_to_CIGAR", "ZeroReadsSampleList.txt") #Output file for 
 		path_to_amp_db = reference #Amplicon sequence fasta file
 		path_to_alignments = os.path.join(res_dir, "ASV_to_CIGAR", "alignments") #Directory to store ASV alignment files
 
@@ -497,6 +498,9 @@ def main():
 		print(f"INFO: Converting DADA2 seqtab file {path_to_seqtab} to {path_to_out}")
 		if ac.convert_seqtab(path_to_seqtab, cigars, path_to_out):
 			print("INFO: Completed successfully!")
+
+			if ac.get_zero_reads_samples(path_to_out, path_to_zero_read_samples):
+				print("INFO: Obtained samples with zero reads successfully!")
 		
 if __name__ == "__main__":
 	main()
