@@ -497,7 +497,7 @@ def main():
 
 		print(f"INFO: Converting DADA2 seqtab file {path_to_seqtab} to {path_to_out}")
 		if ac.convert_seqtab(path_to_seqtab, cigars, path_to_out):
-			print("INFO: Completed successfully!")
+			print("INFO: Completed conversion of seqtab to CIGAR variants successfully!")
 
 			if ac.get_zero_reads_samples(path_to_out, path_to_zero_read_samples):
 				print("INFO: Obtained samples with zero reads successfully!")

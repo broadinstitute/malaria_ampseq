@@ -428,16 +428,17 @@ def convert_seqtab(file, cigars, out):
 			print("ERROR: No seqtab data to write!")
 			return
 
-		# write output file (sort variants first)
-		variants = sorted(list(variants), key=lambda variant: total_reads.get(variant, 0), reverse=True)
-		with open(out, "w") as w:
-			# write header
-			w.write("sample\t" + "\t".join(variants) + "\n")
-			# write one sample per line
-			for sample in sorted(seqtab):
-				w.write(f"{sample}\t" + "\t".join([f"{seqtab[sample].get(variant, 0)}" for variant in variants]) + "\n")
-		
-			return True
+	# write output file (sort variants first)
+	print("INFO: Converting variants here...")
+	variants = sorted(list(variants), key=lambda variant: total_reads.get(variant, 0), reverse=True)
+	with open(out, "w") as w:
+		# write header
+		w.write("sample\t" + "\t".join(variants) + "\n")
+		# write one sample per line
+		for sample in sorted(seqtab):
+			w.write(f"{sample}\t" + "\t".join([f"{seqtab[sample].get(variant, 0)}" for variant in variants]) + "\n")
+	
+		return True
 
 def get_zero_reads_samples(file, out):
 	"""
