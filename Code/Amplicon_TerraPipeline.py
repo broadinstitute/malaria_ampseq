@@ -39,12 +39,12 @@ def main():
 	parser.add_argument('--demultiplexed', action="store_true", help="Specify if reads have been demultiplexed.")
 	parser.add_argument('--primer_removal', action="store_true", help="Specify if primer removal needed.")
 	parser.add_argument('--dada2', action="store_true", help="Specifiy if standard preprocess merge with DADA2 is performed.")
-	parser.add_argument('--postproc_dada2', action="store_true", help="Specifiy if postProcess of DADA2 results is perfomed.")
-	parser.add_argument('--asv_to_cigar', action="store_true", help="Specifiy if the ASV to CIGAR transformation is perfomed.")
+	parser.add_argument('--postproc_dada2', action="store_true", help="Specify if postProcess of DADA2 results is perfomed.")
+	parser.add_argument('--asv_to_cigar', action="store_true", help="Specify if the ASV to CIGAR transformation is perfomed.")
 
 	args = parser.parse_args()
 
-	#Check minimum arguments and contracdicting flags
+	#Check minimum arguments and contradicting flags
 	if args.terra:
 		print("Pipeline is running in Terra. Adjusted paths will be used.")
 	else:

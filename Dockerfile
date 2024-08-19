@@ -15,6 +15,9 @@ RUN mamba config \
     muscle=3.8.1551 \
     bioconductor-dada2=1.20.0 \
     bioconductor-limma=3.48.0 \
+    bioconductor-biostrings=2.60.0 \
+    r-biocmanager=1.30.21 \
+    r-ape=5.7_1 \
     r-data.table=1.14.0 \
     r-viridisLite=0.4.0 \
     r-argparse=2.0.3 \
