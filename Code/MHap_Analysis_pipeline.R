@@ -849,7 +849,7 @@ print("All variables checked")
 
 # Check packages and functions----
 
-print("Loading libraies and functions")
+print("Loading libraries and functions")
 source(file.path(fd,'amplseq_required_libraries.R'))
 source(file.path(fd,'amplseq_functions.R'))
 
@@ -889,7 +889,7 @@ if(!is.null(cigar_paths)|!is.null(cigar_files)){
       cigar_object = read_cigar_tables(files = cigar_files, sample_id_pattern = sample_id_pattern)
     }
   }
-  
+  print(cigar_object@cigar_table[,1:10])
   markers = read.csv(markers)
   
   if(PerformanceReport){
@@ -897,6 +897,7 @@ if(!is.null(cigar_paths)|!is.null(cigar_files)){
     ampseq_object = cigar2ampseq(cigar_object, markers = markers, min_abd = min_abd, min_ratio = min_ratio, remove_controls = F)
  
   }else{
+    print("Creating ampseq object...")
     ampseq_object = cigar2ampseq(cigar_object, markers = markers, min_abd = min_abd, min_ratio = min_ratio, remove_controls = T)
   }
   
@@ -3730,7 +3731,7 @@ if((!is.null(cigar_paths)|!is.null(cigar_files)) &
     print('exporting ampseq object as several csv files')
     write_ampseq(ampseq_object = ampseq_object,
                  format = ampseq_export_format,
-                 name = file.path(wd, paste0(output, '_csv')))
+                 name = file.path(wd, paste0(output, '.csv')))
     
   }else if(ampseq_export_format == 'json'){
     print('exporting ampseq object as a json file')

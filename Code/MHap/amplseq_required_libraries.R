@@ -90,12 +90,12 @@ if(!require(ape)){
 #   library(pegas)
 # }
 
-# if(!require(RColorBrewer)){
-#   install.packages("RColorBrewer")
-#   library(RColorBrewer)
-# }else{
-#   library(RColorBrewer)
-# }
+if(!require(RColorBrewer)){
+  install.packages("RColorBrewer")
+  library(RColorBrewer)
+}else{
+  library(RColorBrewer)
+}
 
 # if(!require(Hmisc)){
 #   install.packages('Hmisc')
@@ -156,19 +156,19 @@ if(!require(stringr)){
   library(stringr)
 }
 
-# if(!require(XLConnect)){
-#   install.packages('XLConnect')
-#   library(XLConnect)
-# }
+if(!require(XLConnect)){
+  install.packages('XLConnect')
+  library(XLConnect)
+}
 
 # if(!require(tmap)){
 #   install.packages('tmap')
 #   library(tmap)
 # }
 
-if(!require(sp)){
-  install.packages('sp')
-  library(sp)
-}
+# if(!require(sp)){
+#   install.packages('sp')
+#   library(sp)
+# }
 
 

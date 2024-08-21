@@ -18,6 +18,9 @@ RUN mamba config \
     bioconductor-biostrings=2.60.0 \
     r-biocmanager=1.30.21 \
     r-ape=5.7_1 \
+    r-vegan=2.6_4 \
+    r-rcolorbrewer=1.1_3 \
+    r-xlconnect=1.0.7 \
     r-data.table=1.14.0 \
     r-viridisLite=0.4.0 \
     r-argparse=2.0.3 \

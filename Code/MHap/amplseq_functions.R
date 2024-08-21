@@ -803,14 +803,15 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
         
         temp_sheet = data.frame(Sample_id = rownames(slot(ampseq_object, temp_slot)),
                                 as.data.frame(slot(ampseq_object, temp_slot)))
-        
+        print("Sheet set to genotype slot.")
       }else if(temp_slot == 'asv_seqs'){
         
         if(!is.null(slot(ampseq_object, temp_slot))){
           
           temp_sheet = data.frame(asv_id = names(slot(ampseq_object, temp_slot)),
                                   asv_seq = as.character(slot(ampseq_object, temp_slot)))
-          
+          print("Sheet set to asv_seqs slot.")
+
         }else{
           temp_sheet = NULL
         }
@@ -819,7 +820,8 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
         
         temp_sheet = as.data.frame(slot(ampseq_object, temp_slot))
         temp_sheet[is.infinite(temp_sheet[['distance']]),][['distance']] = NA
-        
+        print("Sheet set to markers slot.")
+
       }else if(temp_slot == 'discarded_loci'){
         
         temp_sheet = NULL
@@ -843,7 +845,10 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
           # write markers
           
           temp_discarded_loci_markers = as.data.frame(temp_discarded_loci[['markers']])
-          temp_discarded_loci_markers[is.infinite(temp_discarded_loci_markers[['distance']]),][['distance']] = NA
+          # Before setting values to NA, check if any infinite values exist
+          if(sum(is.infinite(temp_discarded_loci_markers[['distance']])) > 0){
+            temp_discarded_loci_markers[is.infinite(temp_discarded_loci_markers[['distance']]),][['distance']] = NA
+          }
           
           createSheet(excel_wb, name = 'discarded_loci_markers')
           
@@ -2487,10 +2492,10 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
   
   ampseq_loci_abd_table = ampseq_object@gt
   
+  print("Calculating loci performance...")
   loci_performance = data.frame(loci = colnames(ampseq_loci_abd_table),
                                 loci_ampl_rate_Total = apply(ampseq_loci_abd_table, 2, function(x) 1 - sum(is.na(x))/length(x)))
-  
-  
+  print("Finished calcualting loci performance!")
   if(!is.null(strata)){
     
     ampseq_object@metadata[['Strata']] = ampseq_object@metadata[[strata]]
@@ -2572,6 +2577,7 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
   #   scale_y_continuous(breaks = 1:14)+
   #   scale_color_continuous(type = "viridis")
   
+  print("Updating loci based on locus amplification rate...")
   if(update_loci){
     
     if(!is.null(strata) & based_on_strata){
@@ -2625,6 +2631,8 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
       
     }else if((is.null(strata) | !based_on_strata)){
       
+      print("Deciding which loci to keep/discard...")
+
       discarded_loci = loci_performance[loci_performance[["loci_ampl_rate_Total"]] <= threshold,][["loci"]]
       keeped_loci = loci_performance[loci_performance[["loci_ampl_rate_Total"]] > threshold,][["loci"]]
       
@@ -2633,15 +2641,19 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
       ampseq_loci_abd_table = 
         ampseq_loci_abd_table[, colnames(ampseq_loci_abd_table) %in% keeped_loci]
       
-      markers = ampseq_object@markers
-      
+      print("Finished deciding loci to keep/discard!")
+
+      markers = ampseq_object@markers      
       discarded_markers = markers[markers[['amplicon']] %in% discarded_loci,]
       markers = markers[markers[['amplicon']] %in% keeped_loci,]
       
+      print("Deciding which markers to keep/discard...")
       markers[["distance"]] = Inf
       
       for(chromosome in levels(as.factor(markers[["chromosome"]]))){
+        print(chromosome)
         for(amplicon in 1:(nrow(markers[markers[["chromosome"]] == chromosome,])-1)){
+          print(amplicon)
           markers[
             markers[["chromosome"]] == chromosome,
           ][amplicon, "distance"] = 
@@ -2649,6 +2661,8 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
             markers[markers[["chromosome"]] == chromosome,][amplicon, "pos"]
         }
       }
+
+      print("Finished deciding which markers to keep/discard!")
       
       loci_performance_complete = loci_performance
       loci_performance = loci_performance[keeped_loci,]
