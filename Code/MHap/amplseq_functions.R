@@ -130,6 +130,7 @@ read_cigar_tables = function(paths = NULL,
       
     }
   }else if(is.null(paths)&!is.null(cigar_files)){
+    print("Iterating through cigar_files...")
     
     
     for(file in 1:length(cigar_files)){
@@ -151,11 +152,13 @@ read_cigar_tables = function(paths = NULL,
            length(zero_read_sample_list == length(cigar_files))){
           
           # Uploading asv2cigar
+          print("Uploading asv2cigar...")
           asv2cigar_run = read.table(asv2cigar_files[file],
                                      header = T,
                                      check.names = FALSE)
           
           # Uploading asv_table
+          print("Uploading asv_table...")
           asv_table_run = read.table(asv_table_files[file],
                                      header = T,
                                      check.names = FALSE)
@@ -166,13 +169,14 @@ read_cigar_tables = function(paths = NULL,
           cigar_tables[[cigar_files[file]]][['asv_table']] = asv_table_run
           
           # Uploading asv_seqs
+          print("Uploading asv_seqs...")
           asv_seqs = Biostrings::readDNAStringSet(asv_seq_files[file])
           
           # Saving asv_seqs in cigar_tables object
           cigar_tables[[cigar_files[file]]][['asv_seqs']] = asv_seqs
           
           # adding ZeroReadSamples
-          
+          print("Uploading zeroReadSamples...")
           ZeroReadSamples = read.table(zero_read_sample_list[file], header = T)
           
           ZeroReadSamples = matrix(0, nrow = length(ZeroReadSamples[[1]]),
