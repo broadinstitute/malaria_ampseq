@@ -239,48 +239,48 @@ print(paste0('rd: ', rd))
 ## Upload of raw data----
 # Starting cigar file
 cigar_paths = args$cigar_paths
-cigar_paths = if(cigar_paths == 'null'){NULL}else{file.path(wd, cigar_paths)}
+cigar_paths = if(cigar_paths == 'null' || cigar_paths == ''){NULL}else{file.path(wd, cigar_paths)}
 print(paste0('cigar_paths: ', cigar_paths))
 
 # Starting cigar file
 cigar_files = args$cigar_files
-cigar_files = if(cigar_files == 'null'){NULL}else{file.path(wd, cigar_files)}
+cigar_files = if(cigar_files == 'null' || cigar_files == ''){NULL}else{file.path(wd, cigar_files)}
 print(paste0('cigar_files: ', cigar_files))
 
 # Starting cigar file
 asv_table_files = args$asv_table_files
-asv_table_files = if(asv_table_files == 'null'){NULL}else{file.path(wd, asv_table_files)}
-print(paste0('asv_table_files: ', cigar_files))
+asv_table_files = if(asv_table_files == 'null' || asv_table_files == ''){NULL}else{file.path(wd, asv_table_files)}
+print(paste0('asv_table_files: ', asv_table_files))
 
 # Starting cigar file
 asv2cigar_files = args$asv2cigar_files
-asv2cigar_files = if(asv2cigar_files == 'null'){NULL}else{file.path(wd, asv2cigar_files)}
+asv2cigar_files = if(asv2cigar_files == 'null' || asv2cigar_files == ''){NULL}else{file.path(wd, asv2cigar_files)}
 print(paste0('asv2cigar_files: ', asv2cigar_files))
 
 # Starting cigar file
 asv_seq_files = args$asv_seq_files
-asv_seq_files = if(asv_seq_files == 'null'){NULL}else{file.path(wd, asv_seq_files)}
+asv_seq_files = if(asv_seq_files == 'null' || asv_seq_files == ''){NULL}else{file.path(wd, asv_seq_files)}
 print(paste0('asv_seq_files: ', asv_seq_files))
 
 # Starting cigar file
 zero_read_sample_list = args$zero_read_sample_list
-zero_read_sample_list = if(zero_read_sample_list == 'null'){NULL}else{file.path(wd, zero_read_sample_list)}
+zero_read_sample_list = if(zero_read_sample_list == 'null' || zero_read_sample_list == ''){NULL}else{file.path(wd, zero_read_sample_list)}
 print(paste0('zero_read_sample_list: ', zero_read_sample_list))
 
 
 # Starting ampseq file in json format
 ampseq_jsonfile = args$ampseq_jsonfile
-ampseq_jsonfile = if(ampseq_jsonfile == 'null'){NULL}else{file.path(wd, ampseq_jsonfile)}
+ampseq_jsonfile = if(ampseq_jsonfile == 'null' || ampseq_json_file == ''){NULL}else{file.path(wd, ampseq_jsonfile)}
 print(paste0('ampseq_jsonfile: ', ampseq_jsonfile))
 
 # Starting ampseq file in excel format
 ampseq_excelfile = args$ampseq_excelfile
-ampseq_excelfile = if(ampseq_excelfile == 'null'){NULL}else{file.path(wd, args$ampseq_excelfile)}
+ampseq_excelfile = if(ampseq_excelfile == 'null' || ampseq_excelfile == ''){NULL}else{file.path(wd, args$ampseq_excelfile)}
 print(paste0('ampseq_excelfile: ', ampseq_excelfile))
 
 # Starting ampseq file in csv format
 ampseq_csvfolder = args$ampseq_csvfolder
-ampseq_csvfolder = if(ampseq_csvfolder == 'null'){NULL}else{file.path(wd, args$ampseq_csvfolder)}
+ampseq_csvfolder = if(ampseq_csvfolder == 'null' || ampseq_csvfolder == ''){NULL}else{file.path(wd, args$ampseq_csvfolder)}
 print(paste0('ampseq_csvfolder: ', ampseq_csvfolder))
 
 # Pattern to differentiate between samples of interest and controls
@@ -289,7 +289,7 @@ print(paste0('sample_id_pattern: ', sample_id_pattern))
 
 # csv table with markers information
 markers = args$markers
-markers = if(markers == 'null'){NULL}else{file.path(rd, markers)}
+markers = if(markers == 'null' || markers == ''){NULL}else{file.path(rd, markers)}
 print(paste0('markers: ', markers))
 
 ## Parameters to export data and results----
