@@ -43,7 +43,14 @@ read_cigar_tables = function(paths = NULL,
   # and generate a metadata table for sample names, runs and sample types (controls vs samples of interest)
   cigar_tables = NULL
   metadata = NULL
-  
+
+  print(paths)
+  print(cigar_files)
+  print(asv_table_files)
+  print(asv2cigar_files)
+  print(asv_seq_files)
+  print(zero_read_sample_list)
+
   if(!is.null(paths)&is.null(cigar_files)){
     for(Run in list.files(paths)){
       
@@ -2841,7 +2848,7 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
       markers = markers[markers[['amplicon']] %in% keeped_loci,]
       
       print("Deciding which markers to keep/discard...")
-      markers[["distance"]] = Inf
+      # markers[["distance"]] = Inf
       
       for(chromosome in levels(as.factor(markers[["chromosome"]]))){
         for(amplicon in 1:(nrow(markers[markers[["chromosome"]] == chromosome,])-1)){
