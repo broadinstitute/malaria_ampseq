@@ -122,7 +122,6 @@ read_cigar_tables = function(paths = NULL,
           )
           
           rownames(ZeroReadSamples) = paste(1:length(ZeroReadSamples_names), Run, ZeroReadSamples_names, sep = '/')
-          
           cigar_tables[[Run]][['cigar_table']] = rbind(cigar_tables[[Run]][['cigar_table']],
                                                        ZeroReadSamples)
           
@@ -184,19 +183,38 @@ read_cigar_tables = function(paths = NULL,
           
           # adding ZeroReadSamples
           print("Uploading zeroReadSamples...")
-          ZeroReadSamples = read.table(zero_read_sample_list[file], header = T)
-          
-          ZeroReadSamples = matrix(0, nrow = length(ZeroReadSamples[[1]]),
-                                   ncol = ncol(cigar_tables[[cigar_files[file]]][['cigar_table']]),
-                                   dimnames = list(paste((nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 
-                                                            1):(nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 
-                                                                  length(ZeroReadSamples[[1]])), 
-                                                         cigar_files[file], 
-                                                         gsub('_prim_1.fq.gz$', '', ZeroReadSamples[[1]]), sep = '/'),
+          # ZeroReadSamples = read.table(zero_read_sample_list[file], header = FALSE)
+          # ZeroReadSamples = matrix(0, nrow = length(as.vector(ZeroReadSamples[[1]])),
+          #                          ncol = ncol(cigar_tables[[cigar_files[file]]][['cigar_table']]),
+          #                          dimnames = list(paste((nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 
+          #                                                   1):(nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 
+          #                                                         length(as.vector(ZeroReadSamples[[1]]))), 
+          #                                                cigar_files[file], 
+          #                                                gsub('_prim_1.fq.gz$', '', as.vector(ZeroReadSamples[[1]])), sep = '/'),
                                                    
-                                                   colnames(cigar_tables[[cigar_files[file]]][['cigar_table']]))
+          #                                          colnames(cigar_tables[[cigar_files[file]]][['cigar_table']]))
+          # )
+          # print(rownames(ZeroReadSamples))
+
+          # Ensure ZeroReadSamples[[1]] is treated as a vector
+          ZeroReadSamples <- read.table(zero_read_sample_list[file], header = FALSE, stringsAsFactors = FALSE)
+          ZeroReadSamplesVector <- as.vector(ZeroReadSamples[[1]])
+
+          # Generate row names with proper sequence handling
+          row_sequence <- (nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 1):
+                          (nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + length(ZeroReadSamplesVector))
+
+          dimnames <- list(
+            paste(row_sequence, cigar_files[file], gsub('_prim_1.fq.gz$', '', ZeroReadSamplesVector), sep = '/'),
+            colnames(cigar_tables[[cigar_files[file]]][['cigar_table']])
           )
-          
+
+          # Create the matrix with appropriate dimensions and names
+          ZeroReadSamples <- matrix(0, 
+                                    nrow = length(ZeroReadSamplesVector), 
+                                    ncol = ncol(cigar_tables[[cigar_files[file]]][['cigar_table']]),
+                                    dimnames = dimnames)
+          print(rownames(ZeroReadSamples))                      
           cigar_tables[[cigar_files[file]]][['cigar_table']] = rbind(cigar_tables[[cigar_files[file]]][['cigar_table']],
                                                                      ZeroReadSamples
           )
@@ -935,7 +953,6 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
           temp_discarded_samples = slot(ampseq_object, temp_slot)
           
           # write gt
-          
           temp_discarded_samples_gt = data.frame(Sample_id = rownames(temp_discarded_samples[['gt']]),
                                               as.data.frame(temp_discarded_samples[['gt']]))
           
@@ -2931,8 +2948,11 @@ sample_amplification_rate = function(ampseq_object, threshold = .8, update_sampl
   if(update_samples){
     
     ampseq_loci_abd_table_discarded_samples = ampseq_loci_abd_table[!(rownames(ampseq_loci_abd_table) %in% metadata[metadata[["sample_ampl_rate"]] > threshold ,][["Sample_id"]]),]
+    print("Printing ampseq_loci_abd_table_discarded_samples...")
+    print(rownames(ampseq_loci_abd_table_discarded_samples))
     ampseq_loci_abd_table = ampseq_loci_abd_table[rownames(ampseq_loci_abd_table) %in% metadata[metadata[["sample_ampl_rate"]] > threshold ,][["Sample_id"]],]
-    
+    print("Printing ampseq_loci_abd_table...")
+    print(rownames(ampseq_loci_abd_table))
     metadata_complete = metadata
     metadata = metadata[metadata[["sample_ampl_rate"]] > threshold ,]
     
