@@ -165,6 +165,7 @@ def trim_primer(sampleid, fileF, fileR, res_dir, subdir, pr1, pr2, prefix, keep_
 		print(cmd)
 		proc = subprocess.Popen(cmd)
 		proc.wait()
+		print(f"Finished trimming primer for {sampleid}_{prefix}.")
 
 	else:
 		sys.exit('Pre-process halted : one or both of the fastq files not found! Exiting...')
