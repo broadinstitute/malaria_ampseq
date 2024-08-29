@@ -331,7 +331,8 @@ def main():
 			for sample in samples:
 				slist = sample.split()
 				# ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", "amp_primer_fw.fasta", "amp_primer_rv.fasta", "mixed_nop")
-				ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", fw, rv, "mixed_nop")
+				# ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", fw, rv, "mixed_nop")
+				ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", pr1, pr2, "mixed_op")
 
 			#Metafile for trimmed non-op target reads
 			ad.create_meta(os.path.join(res_dir, "PrimerRem"), res_dir, "PrimerRem", "mixed_nop_prim_meta.tsv", 
@@ -343,7 +344,8 @@ def main():
 		for sample in samples:
 			slist = sample.split()
 			# ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", "amp_primer_fw.fasta", "amp_primer_rv.fasta", "mixed_op")
-			ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", fw, rv, "mixed_op")
+			# ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", fw, rv, "mixed_op")
+			ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", pr1, pr2, "mixed_op")
 
 		#Metafile for trimmed overlapping target reads
 		ad.create_meta(os.path.join(res_dir, "PrimerRem"), res_dir, "PrimerRem", "mixed_op_prim_meta.tsv",
