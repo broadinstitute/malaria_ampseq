@@ -122,6 +122,7 @@ read_cigar_tables = function(paths = NULL,
           )
           
           rownames(ZeroReadSamples) = paste(1:length(ZeroReadSamples_names), Run, ZeroReadSamples_names, sep = '/')
+          
           cigar_tables[[Run]][['cigar_table']] = rbind(cigar_tables[[Run]][['cigar_table']],
                                                        ZeroReadSamples)
           
@@ -183,42 +184,24 @@ read_cigar_tables = function(paths = NULL,
           
           # adding ZeroReadSamples
           print("Uploading zeroReadSamples...")
-          # ZeroReadSamples = read.table(zero_read_sample_list[file], header = FALSE)
-          # ZeroReadSamples = matrix(0, nrow = length(as.vector(ZeroReadSamples[[1]])),
-          #                          ncol = ncol(cigar_tables[[cigar_files[file]]][['cigar_table']]),
-          #                          dimnames = list(paste((nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 
-          #                                                   1):(nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 
-          #                                                         length(as.vector(ZeroReadSamples[[1]]))), 
-          #                                                cigar_files[file], 
-          #                                                gsub('_prim_1.fq.gz$', '', as.vector(ZeroReadSamples[[1]])), sep = '/'),
-                                                   
-          #                                          colnames(cigar_tables[[cigar_files[file]]][['cigar_table']]))
-          # )
-          # print(rownames(ZeroReadSamples))
+          ZeroReadSamples = read.table(zero_read_sample_list[file], header = T)
 
-          # Ensure ZeroReadSamples[[1]] is treated as a vector
-          ZeroReadSamples <- read.table(zero_read_sample_list[file], header = FALSE, stringsAsFactors = FALSE)
-          ZeroReadSamplesVector <- as.vector(ZeroReadSamples[[1]])
-
-          # Generate row names with proper sequence handling
-          row_sequence <- (nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 1):
-                          (nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + length(ZeroReadSamplesVector))
-
-          dimnames <- list(
-            paste(row_sequence, cigar_files[file], gsub('_prim_1.fq.gz$', '', ZeroReadSamplesVector), sep = '/'),
-            colnames(cigar_tables[[cigar_files[file]]][['cigar_table']])
-          )
-
-          # Create the matrix with appropriate dimensions and names
-          ZeroReadSamples <- matrix(0, 
-                                    nrow = length(ZeroReadSamplesVector), 
+          if(nrow(ZeroReadSamples) > 0){
+            ZeroReadSamples = matrix(0, nrow = length(ZeroReadSamples[[1]]),
                                     ncol = ncol(cigar_tables[[cigar_files[file]]][['cigar_table']]),
-                                    dimnames = dimnames)
-          print(rownames(ZeroReadSamples))                      
-          cigar_tables[[cigar_files[file]]][['cigar_table']] = rbind(cigar_tables[[cigar_files[file]]][['cigar_table']],
-                                                                     ZeroReadSamples
-          )
-          
+                                    dimnames = list(paste((nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 
+                                                              1):(nrow(cigar_tables[[cigar_files[file]]][['cigar_table']]) + 
+                                                                    length(ZeroReadSamples[[1]])), 
+                                                           cigar_files[file], 
+                                                           gsub('_prim_1.fq.gz$', '', ZeroReadSamples[[1]]), sep = '/'),
+                                                     
+                                                     colnames(cigar_tables[[cigar_files[file]]][['cigar_table']]))
+            ) 
+
+            cigar_tables[[cigar_files[file]]][['cigar_table']] = rbind(cigar_tables[[cigar_files[file]]][['cigar_table']],
+                                                                       ZeroReadSamples
+            )
+          }
           
           #rm(list = c("asv2cigar_run", "asv_table_run", "asv_seqs"))
           
@@ -251,6 +234,8 @@ read_cigar_tables = function(paths = NULL,
     cigar_table = rbind(cigar_table, temp_cigar_table)
     
     if(!is.null(asv_table_files) | !is.null(paths)){
+      
+      # ASVs in the new data set
       temp_asv_seqs1 = cigar_tables[[Run]][['asv_seqs']]
       temp_asv_table1 = cigar_tables[[Run]][['asv_table']]
       
@@ -279,8 +264,9 @@ read_cigar_tables = function(paths = NULL,
         temp_asv_table3[['bimera']] = temp_asv_table3[['bimera']] | temp_asv_table2[['bimera']]
         
         # Impute the inconsistent cigar_strings in the cigar_table
-        unconsitent_cigar_strings = data.frame(temp_asv_table2[temp_asv_table2$CIGAR != temp_asv_table3$CIGAR,], CIGAR2 = temp_asv_table3[temp_asv_table3$CIGAR != temp_asv_table2$CIGAR,][['CIGAR']])
         
+        unconsitent_cigar_strings = data.frame(temp_asv_table2[temp_asv_table2$CIGAR != temp_asv_table3$CIGAR,], 
+                                               CIGAR2 = temp_asv_table3[temp_asv_table3$CIGAR != temp_asv_table2$CIGAR,][['CIGAR']])        
         for(allele in unconsitent_cigar_strings$CIGAR){
           
           cigar_table[cigar_table$alleles == paste(unconsitent_cigar_strings[unconsitent_cigar_strings$CIGAR == allele, c('Amplicon', 'CIGAR')], collapse = ','),][['alleles']] = 
@@ -306,6 +292,8 @@ read_cigar_tables = function(paths = NULL,
       
       asv_table = rbind(asv_table, temp_asv_table1)
       
+      asv_table = asv_table[order(as.integer(gsub('ASV','',asv_table$hapid))),]
+
       rm(list = c('Run', 'temp_cigar_table', 'temp_asv_seqs1', 'temp_asv_table1'))
     }else{
       rm(list = c('Run', 'temp_cigar_table'))
@@ -719,19 +707,20 @@ join_ampseq = function(ampseq_obj_list = NULL){
                 temp_gt1[samp, mhap] = gsub(cigar_string_masked_pattern_in_samp,
                                             cigar_string_masked_replacment_in_samp, 
                                             temp_gt1[samp, mhap])
+
+                rm(cigar_string_masked_replacment_in_samp)
                 
               }
-              rm(samp)
+              rm(list = c('samp', 'cigar_string_masked_pattern_in_samp'))
             }
             
             rm(list = c('pos', 
                         'mhap', 
                         'cigar_string_masked_replacment', 
-                        'cigar_string_masked_pattern', 
-                        'cigar_string_masked_pattern_in_samp',
-                        'cigar_string_masked_replacment_in_samp'))
-            
-          }
+                        'cigar_string_masked_pattern'
+            ))        
+
+           }
         }
         
         rm(unconsitent_cigar_strings)
@@ -757,6 +746,7 @@ join_ampseq = function(ampseq_obj_list = NULL){
       
       # merging asv_table
       asv_table = rbind(asv_table, temp_asv_table1)
+      asv_table = asv_table[order(as.integer(gsub('ASV','',asv_table$hapid))),]
       
       # merging marker table
       unshared_attributes = names(temp_markers1)[!(names(temp_markers1) %in% names(markers))]
@@ -953,6 +943,7 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
           temp_discarded_samples = slot(ampseq_object, temp_slot)
           
           # write gt
+
           temp_discarded_samples_gt = data.frame(Sample_id = rownames(temp_discarded_samples[['gt']]),
                                               as.data.frame(temp_discarded_samples[['gt']]))
           
@@ -1561,8 +1552,6 @@ read_ampseq = function(file = NULL, format = 'excel'){
 }
 
 
-
-
 ## ampseq2loci----
 
 ampseq2loci = function(ampseq_object){
@@ -1684,22 +1673,22 @@ setMethod("mask_alt_alleles", signature(obj = "ampseq"),
             for(mhap in mhaps$amplicon){
               
               homopolymers = unlist(str_extract_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern))
-              homopolymers_location = str_locate_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern)
-              
-              mhaps[mhaps$amplicon == mhap, ][['homopolymer_regions']] = paste(paste(homopolymers,
-                                                                                     paste(homopolymers_location[[1]][,'start'],
-                                                                                           homopolymers_location[[1]][,'end'], sep = '-'), sep = ':'),
-                                                                               collapse = ',')
-              
-            }
-            
-            mhaps %<>% mutate(homopolymer_regions = case_when(
-              homopolymer_regions == '' ~ NA,
-              homopolymer_regions != '' ~ homopolymer_regions
-            ))
-            
-            alt = sapply(colnames(gt), function(mhap){
-              alt = unique(unlist(strsplit(gsub(':\\d+', '',gt[,mhap]), '_')))
+
+              if(length(homopolymers) > 0){
+                
+                homopolymers_location = str_locate_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern)
+
+                mhaps[mhaps$amplicon == mhap, ][['homopolymer_regions']] = paste(paste(homopolymers,
+                                                                                       paste(homopolymers_location[[1]][,'start'],
+                                                                                             homopolymers_location[[1]][,'end'], sep = '-'), sep = ':'),
+                                                                                 collapse = ',')
+
+              }
+
+
+            }            
+             alt = sapply(colnames(gt), function(mhap){
+              alt = unique(gsub(':\\d+', '',unlist(strsplit(gt[,mhap], '_'))))
               
               alt = paste(alt[!is.na(alt) & alt != '.'], collapse = ',')
             })
@@ -2474,7 +2463,14 @@ setMethod("mask_alt_alleles", signature(obj = "ampseq"),
                   if(length(removed_alleles) > 0){
                     removed_pattern =paste('_?(', paste(removed_alleles, collapse = '|'), '):\\d+_?', sep = '')
                     # Mask alleles below threshold
-                    gt_masked[,mhap] = gsub(removed_pattern, '', gt_masked[,mhap])
+                    gt_masked[,mhap] = gsub(removed_pattern, '//', gt_masked[,mhap])
+                    
+                    gt_masked[,mhap] = gsub(removed_pattern, '//', gt_masked[,mhap])
+                    
+                    gt_masked[,mhap] = ifelse(grepl('^//|//$', gt_masked[,mhap]), gsub('//', '', gt_masked[,mhap]), gt_masked[,mhap])
+                    
+                    gt_masked[,mhap] = gsub('//', '_', gt_masked[,mhap])
+
                     
                     if(length(gt_masked[gt_masked[,mhap] == '' &
                                         !is.na(gt_masked[,mhap])
@@ -2712,7 +2708,7 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
   print("Calculating loci performance...")
   loci_performance = data.frame(loci = colnames(ampseq_loci_abd_table),
                                 loci_ampl_rate_Total = apply(ampseq_loci_abd_table, 2, function(x) 1 - sum(is.na(x))/length(x)))
-  print("Finished calcualting loci performance!")
+  print("Finished calculating loci performance!")
   if(!is.null(strata)){
     
     ampseq_object@metadata[['Strata']] = ampseq_object@metadata[[strata]]
@@ -3012,29 +3008,25 @@ setMethod("get_ASVs_attributes", signature(obj = "ampseq"),
             homopolymer_pattern = gsub('length', homopolymer_length, homopolymer_pattern)
             
             for(mhap in mhaps$amplicon){
-              
               homopolymers = unlist(str_extract_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern))
-              homopolymers_location = str_locate_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern)
               
-              mhaps[mhaps$amplicon == mhap, ][['homopolymer_regions']] = paste(paste(homopolymers,
-                                                                                     paste(homopolymers_location[[1]][,'start'],
-                                                                                           homopolymers_location[[1]][,'end'], sep = '-'), sep = ':'),
-                                                                               collapse = ',')
-              
+              if(length(homopolymers) > 0 ){
+                
+                homopolymers_location = str_locate_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern)
+                
+                mhaps[mhaps$amplicon == mhap, ][['homopolymer_regions']] = paste(paste(homopolymers,
+                                                                                       paste(homopolymers_location[[1]][,'start'],
+                                                                                             homopolymers_location[[1]][,'end'], sep = '-'), sep = ':'),
+                                                                                 collapse = ',')
+                
+              }                             
             }
-            
-            mhaps %<>% mutate(homopolymer_regions = case_when(
-              homopolymer_regions == '' ~ NA,
-              homopolymer_regions != '' ~ homopolymer_regions
-            ))
-            
             alt = sapply(colnames(gt), function(mhap){
-              alt = unique(unlist(strsplit(gsub(':\\d+', '',gt[,mhap]), '_')))
+              alt = unique(gsub(':\\d+', '',unlist(strsplit(gt[,mhap], '_'))))
               
               alt = paste(alt[!is.na(alt) & alt != '.'], collapse = ',')
             })
-            
-            
+          
             gt = gsub(':\\d+', '',gt)
             
             # Heterozygous positions
