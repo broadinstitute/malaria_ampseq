@@ -2034,12 +2034,15 @@ if(!is.null(flanking_INDEL_formula)){
     
     print(paste0(n_flanking_INDEL_alleles, ' allele(s) matches the criteria to identify products with flanking INDELs'))
     # mask flanking_INDEL
-    
-    flanking_INDEL_stats2 = get_ASVs_attributes(ampseq_object,  ref_fasta = amplicon_fasta)
-    while(sum(flanking_INDEL_stats2$flanking_INDEL) > 0){
-      ampseq_object = mask_alt_alleles(ampseq_object, mask_formula = flanking_INDEL_formula, ref_fasta = amplicon_fasta)
-      flanking_INDEL_stats2 = get_ASVs_attributes(ampseq_object,  ref_fasta = amplicon_fasta)
-    }
+
+    ampseq_object = mask_alt_alleles(ampseq_object, mask_formula = flanking_INDEL_formula, ref_fasta = amplicon_fasta)
+    ampseq_object = mask_alt_alleles(ampseq_object, mask_formula = flanking_INDEL_formula, ref_fasta = amplicon_fasta)
+
+    # flanking_INDEL_stats2 = get_ASVs_attributes(ampseq_object,  ref_fasta = amplicon_fasta)
+    # while(sum(flanking_INDEL_stats2$flanking_INDEL) > 0){
+    #   ampseq_object = mask_alt_alleles(ampseq_object, mask_formula = flanking_INDEL_formula, ref_fasta = amplicon_fasta)
+    #   flanking_INDEL_stats2 = get_ASVs_attributes(ampseq_object,  ref_fasta = amplicon_fasta)
+    # }
   }else{
     
     print('No allele matches the criteria to identify products with flanking INDELs')

@@ -60,10 +60,25 @@ read_cigar_tables = function(paths = NULL,
       
       if(file.exists(file.path(paths, Run, "dada2/run_dada2/CIGARVariants.out.tsv"))){
         cigar_run = read.table(file.path(paths, Run, "dada2/run_dada2/CIGARVariants.out.tsv"), header = T, check.names = FALSE)
+
+        if(sum(grepl('(/|-|:)', colnames(cigar_run))) > 0){
+          
+          colnames(cigar_run) = gsub('(/|-|:)', '_', colnames(cigar_run))
+          print('The cigar and ampseq formats do not allows the symbols "-", "/", nor ":" in the name of the amplicons. All these symbols will be replaced by "_" in the cigar table.')
+          
+        }
         
       }else if(file.exists(file.path(paths, Run, "dada2/run_dada2/CIGARVariants_Bfilter.out.tsv"))){
         cigar_run = read.table(file.path(paths, Run, "dada2/run_dada2/CIGARVariants_Bfilter.out.tsv"), header = T, check.names = FALSE)
-      }else{
+
+        if(sum(grepl('(/|-|:)', colnames(cigar_run))) > 0){
+          
+          colnames(cigar_run) = gsub('(/|-|:)', '_', colnames(cigar_run))
+          print('The cigar and ampseq formats do not allows the symbols "-", "/", nor ":" in the name of the amplicons. All these symbols will be replaced by "_" in the cigar table.')
+          
+        }
+
+              }else{
         print(paste0('Cigar file ', file.path(paths, Run, "dada2/run_dada2/CIGARVariants_Bfilter.out.tsv"), ' not found'))
       }
       
@@ -82,6 +97,14 @@ read_cigar_tables = function(paths = NULL,
                                    check.names = FALSE)
         asv_table_run = left_join(asv_table_run, asv2cigar_run, by = join_by(hapid == ASV))
         
+
+        if(sum(grepl('(/|-|:)', asv_table_run[['Amplicon']])) > 0){
+          
+          asv_table_run[['Amplicon']] = gsub('(/|-|:)', '_', asv_table_run[['Amplicon']])
+          print('The cigar and ampseq formats do not allows the symbols "-", "/", nor ":" in the name of the amplicons. All these symbols will be replaced by "_" in the column Amplicon of the ASV table.')
+          
+        }
+
       }else{
         print(paste0('asv_table file ', file.path(paths, Run, "dada2/run_dada2/ASVTable.txt"), ' not found'))
       }
@@ -95,7 +118,7 @@ read_cigar_tables = function(paths = NULL,
       if(file.exists(file.path(paths, Run, "dada2/run_dada2/zeroReadSamples.txt"))){
         ZeroReadSamples = read.table(file.path(paths, Run, "dada2/run_dada2/zeroReadSamples.txt") , header = T)
       }else{
-        print(paste0('asv_seqs file ', file.path(paths, Run, "dada2/run_dada2/zeroReadSamples.txt"), ' not found'))
+        print(paste0('ZeroReadSamples file ', file.path(paths, Run, "dada2/run_dada2/zeroReadSamples.txt"), ' not found'))
       }
       
       # Formating CIGAR table
@@ -143,6 +166,14 @@ read_cigar_tables = function(paths = NULL,
     for(file in 1:length(cigar_files)){
       cigar_run = read.table(cigar_files[file], header = T, check.names = FALSE
       )
+
+      if(sum(grepl('(/|-|:)', colnames(cigar_run))) > 0){
+        
+        colnames(cigar_run) = gsub('(/|-|:)', '_', colnames(cigar_run))
+        print('The cigar and ampseq formats do not allows the symbols "-", "/", nor ":" in the name of the amplicons. All these symbols will be replaced by "_" in the cigar table.')
+        
+      }
+
       #samples = gsub('_S\\d+$','', cigar_run[,1])
       samples = cigar_run[,1]
       samples[!grepl(sample_id_pattern,samples)] = paste0(samples[!grepl(sample_id_pattern,samples)], '_file', which(cigar_files == cigar_files[file]))
@@ -171,6 +202,13 @@ read_cigar_tables = function(paths = NULL,
                                      check.names = FALSE)
           
           asv_table_run = left_join(asv_table_run, asv2cigar_run, by = join_by(hapid == ASV))
+
+          if(sum(grepl('(/|-|:)', asv_table_run[['Amplicon']])) > 0){
+            
+            asv_table_run[['Amplicon']] = gsub('(/|-|:)', '_', asv_table_run[['Amplicon']])
+            print('The cigar and ampseq formats do not allows the symbols "-", "/", nor ":" in the name of the amplicons. All these symbols will be replaced by "_" in the column Amplicon of the ASV table.')
+            
+          }
           
           # Saving asv_table in cigar_tables object
           cigar_tables[[cigar_files[file]]][['asv_table']] = asv_table_run
@@ -495,6 +533,14 @@ cigar2ampseq = function(cigar_object, min_abd = 1, min_ratio = .1, markers = NUL
   asv_seqs = cigar_object@asv_seqs
   
   if(!is.null(markers)){
+
+    if(sum(grepl('(/|-|:)', markers[["amplicon"]])) > 0){
+      
+      markers[["amplicon"]] = gsub('(/|-|:)', '_', markers[["amplicon"]])
+      print('The cigar and ampseq formats do not allows the symbols "-", "/", nor ":" in the name of the amplicons. All these symbols will be replaced by "_" in the column amplicon of the markers table.')
+      
+    }
+
     ampseq_loci_vector = markers[["amplicon"]]
     
   }else if(!is.null(markers_pattern)){
@@ -866,6 +912,7 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
         
         temp_sheet = data.frame(Sample_id = rownames(slot(ampseq_object, temp_slot)),
                                 as.data.frame(slot(ampseq_object, temp_slot)))
+
       }else if(temp_slot == 'asv_seqs'){
         
         if(!is.null(slot(ampseq_object, temp_slot))){
@@ -880,6 +927,7 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
       }else if(temp_slot == 'markers'){
         
         temp_sheet = as.data.frame(slot(ampseq_object, temp_slot))
+
          if(sum(is.infinite(temp_sheet[['distance']])) > 0){
           temp_sheet[is.infinite(temp_sheet[['distance']]),][['distance']] = NA
         }
@@ -1665,6 +1713,13 @@ setMethod("mask_alt_alleles", signature(obj = "ampseq"),
             mhaps$homopolymer_regions = NA
             
             ref_sequences = readDNAStringSet(ref_fasta)
+
+            if(sum(grepl('(/|-|:)', names(ref_sequences))) > 0){
+              
+              names(ref_sequences) = gsub('(/|-|:)', '_', names(ref_sequences))
+              print('The cigar and ampseq formats do not allows the symbols "-", "/", nor ":" in the name of the amplicons. All these symbols will be replaced by "_" in the names of the fasta sequences.')
+              
+            }
             
             homopolymer_pattern = '(A{length,}|T{length,}|G{length,}|C{length,})'
             
@@ -1674,7 +1729,7 @@ setMethod("mask_alt_alleles", signature(obj = "ampseq"),
               
               homopolymers = unlist(str_extract_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern))
 
-              if(length(homopolymers) > 0){
+              if(length(homopolymers) > 0 ){
                 
                 homopolymers_location = str_locate_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern)
 
@@ -1686,7 +1741,8 @@ setMethod("mask_alt_alleles", signature(obj = "ampseq"),
               }
 
 
-            }            
+            }         
+
              alt = sapply(colnames(gt), function(mhap){
               alt = unique(gsub(':\\d+', '',unlist(strsplit(gt[,mhap], '_'))))
               
@@ -3002,12 +3058,20 @@ setMethod("get_ASVs_attributes", signature(obj = "ampseq"),
             mhaps$homopolymer_regions = NA
             
             ref_sequences = readDNAStringSet(ref_fasta)
+
+            if(sum(grepl('(/|-|:)', names(ref_sequences))) > 0){
+              
+              names(ref_sequences) = gsub('(/|-|:)', '_', names(ref_sequences))
+              print('The cigar and ampseq formats do not allows the symbols "-", "/", nor ":" in the name of the amplicons. All these symbols will be replaced by "_" in the names of the fasta sequences.')
+              
+            }
             
             homopolymer_pattern = '(A{length,}|T{length,}|G{length,}|C{length,})'
             
             homopolymer_pattern = gsub('length', homopolymer_length, homopolymer_pattern)
             
             for(mhap in mhaps$amplicon){
+
               homopolymers = unlist(str_extract_all(as.character(ref_sequences[[mhap]]), homopolymer_pattern))
               
               if(length(homopolymers) > 0 ){
@@ -3022,7 +3086,7 @@ setMethod("get_ASVs_attributes", signature(obj = "ampseq"),
               }                             
             }
             alt = sapply(colnames(gt), function(mhap){
-              alt = unique(gsub(':\\d+', '',unlist(strsplit(gt[,mhap], '_'))))
+              alt = unique(unlist(strsplit(gsub(':\\d+', '',gt[,mhap]), '_')))
               
               alt = paste(alt[!is.na(alt) & alt != '.'], collapse = ',')
             })
@@ -3404,7 +3468,7 @@ haplotypes_respect_to_reference = function(ampseq_object,
                                                           'PfMDR1',
                                                           'PfDHPS',
                                                           'PfKelch13',
-                                                          'PF3D7_1447900'),
+                                                          'PfMDR2'),
                                            gene_ids = c('PF3D7_0417200',
                                                         'PF3D7_0523000',
                                                         'PF3D7_0810800',
@@ -3539,25 +3603,24 @@ haplotypes_respect_to_reference = function(ampseq_object,
       ref_seqs = c(ref_seqs, as.character(temp_refseq))
     }
     
-    markers_of_interest[markers_of_interest$gene_ids == gene,'ref_length'] = nchar(temp_refseq)
+    markers_of_interest[markers_of_interest$gene_id == gene,'ref_length'] = nchar(temp_refseq)
     
   }
   
-  names(ref_seqs) = unique(markers_of_interest$gene_ids)
+  names(ref_seqs) = unique(markers_of_interest$gene_id)
   ref_seqs = DNAStringSet(ref_seqs)
   
   
   # Convert cigar format to standard mutation nomenclature PMC1867422---
   
   ## Filter drugR markers---
-  
   if(length(gene_ids) > 1){
-    moi_loci_abd_table = ampseq_object@gt[,grep(paste(gene_names, collapse = "|"), colnames(ampseq_object@gt))]  
+    moi_loci_abd_table = ampseq_object@gt[, markers$gene_id %in% gene_ids]  
   }else{
-    moi_loci_abd_table = matrix(ampseq_object@gt[,grep(paste(gene_names, collapse = "|"), colnames(ampseq_object@gt))],
+    moi_loci_abd_table = matrix(ampseq_object@gt[, markers$gene_id %in% gene_ids],
                                 ncol = 1,
                                 dimnames = list(rownames(ampseq_object@gt),
-                                                gene_names))
+                                                colnames(ampseq_object@gt)[markers$gene_id %in% gene_ids]))
   }
   
   
@@ -3572,11 +3635,15 @@ haplotypes_respect_to_reference = function(ampseq_object,
       
       locus = moi_loci_abd_table[sample, amplicon] # Get the genotype in the locus
       
-      if(is.na(locus)){ # if the locus is NULL complete the cell with NA
+      locus = gsub('\\d+(D|I)=[ATGC]+', '', locus) # REMOVE WHEN INDELs DETECTION IS IMPLEMENTED
+
+      if(is.na(locus) |
+         locus == ''
+         ){ # if the locus is NULL complete the cell with NA
         
         moi_loci_dna_table[sample, amplicon] = NA
         moi_loci_aa_table[sample, amplicon] = NA
-        
+   
       }else{
         
         clones = unlist(strsplit(locus, '_')) # get all different clones at that locus
@@ -3586,7 +3653,7 @@ haplotypes_respect_to_reference = function(ampseq_object,
         
         for(clone in clones){ # for each clone get alleles of all different SNPs
           
-          alleles = paste0(unlist(strsplit(gsub('[ATCGDI//.]+$', '', clone), '[ATCGDI//.]+')),
+          alleles = paste0(unlist(strsplit(gsub('[ATCGDI=]+$', '', clone), '[ATCGDI//.]+')),
                            unlist(strsplit(gsub('^[0-9]+', '', clone), '[0-9]+')))
           
           dna_alleles = NULL
@@ -3602,10 +3669,10 @@ haplotypes_respect_to_reference = function(ampseq_object,
             codons = data.frame(alleles = gsub('[0-9]','',alleles), cds_position = sapply(alleles, function(allele){
               
               # position in the mhap
-              mhap_position = as.integer(gsub('[ATCGDI//.]+', '', allele))
+              mhap_position = as.integer(gsub('[ATCGDI=]+', '', allele))
               
               # variant or nucleotide found
-              mhap_variant = gsub('[0-9]+', '', allele)
+              #mhap_variant = gsub('[0-9]+', '', allele)
               
               # calculate position in the CDS
               
@@ -3616,10 +3683,25 @@ haplotypes_respect_to_reference = function(ampseq_object,
             
             # Identify nucleotide in the reference strain
             codons$ref_variant = sapply(1:nrow(codons), function(x){
-              as.character(subseq(ref_seqs[which(names(ref_seqs) ==
-                                                   markers_of_interest[markers_of_interest$amplicon == amplicon,'gene_ids'])],
-                                  start = codons[x, 'cds_position'],
-                                  end = codons[x,'cds_position']))})
+
+              if(grepl('D=',codons[x, 'alleles'])){
+                
+                gsub('D=', '',codons[x, 'alleles'])
+                
+              }else if(grepl('I=',codons[x, 'alleles'])){
+                
+                ''
+                
+              }else{
+                
+                as.character(subseq(ref_seqs[which(names(ref_seqs) ==
+                                                     markers_of_interest[markers_of_interest$amplicon == amplicon, 'gene_id'])],
+                                    start = codons[x, 'cds_position'],
+                                    end = codons[x,'cds_position']))
+                
+              }
+              
+              })
             
             # calculate the aminoacid position
             codons$aa_position = ceiling(codons$cds_position/3)
@@ -3649,10 +3731,10 @@ haplotypes_respect_to_reference = function(ampseq_object,
               
               # get the reference amino acid variant
               ref_aa_variant = ifelse(markers_of_interest[markers_of_interest$amplicon == amplicon,'strand'] == "+",
-                                      as.character(Biostrings::translate(subseq(ref_seqs[which(names(ref_seqs)==markers_of_interest[markers_of_interest$amplicon == amplicon,'gene_ids'])],
+                                      as.character(Biostrings::translate(subseq(ref_seqs[which(names(ref_seqs)==markers_of_interest[markers_of_interest$amplicon == amplicon,'gene_id'])],
                                                                                 start = unique(codons[codons$aa_position == codon,][['first_nucleotide']]),
                                                                                 end = unique(codons[codons$aa_position == codon,][['last_nucleotide']])))),
-                                      as.character(Biostrings::translate(reverseComplement(subseq(ref_seqs[which(names(ref_seqs)==markers_of_interest[markers_of_interest$amplicon == amplicon,'gene_ids'])],
+                                      as.character(Biostrings::translate(reverseComplement(subseq(ref_seqs[which(names(ref_seqs)==markers_of_interest[markers_of_interest$amplicon == amplicon,'gene_id'])],
                                                                                                   start = unique(codons[codons$aa_position == codon,][['first_nucleotide']]),
                                                                                                   end = unique(codons[codons$aa_position == codon,][['last_nucleotide']]))))))
               
@@ -3666,7 +3748,7 @@ haplotypes_respect_to_reference = function(ampseq_object,
               
               for(positions_from_ref1 in  positions_from_ref){
                 positions_from_ref_df = rbind(positions_from_ref_df,
-                                              data.frame(alleles = as.character(subseq(ref_seqs[which(names(ref_seqs)==markers_of_interest[markers_of_interest$amplicon == amplicon,'gene_ids'])],
+                                              data.frame(alleles = as.character(subseq(ref_seqs[which(names(ref_seqs)==markers_of_interest[markers_of_interest$amplicon == amplicon,'gene_id'])],
                                                                                        start = positions_from_ref1,
                                                                                        end = positions_from_ref1)),
                                                          cds_position = positions_from_ref1))
@@ -3728,31 +3810,23 @@ haplotypes_respect_to_reference = function(ampseq_object,
     # Empty table to fill cigar outputs
     aacigar_table = matrix(NA,
                            nrow = nrow(moi_loci_aa_table),
-                           ncol = length(gene_names),
+                           ncol = length(gene_ids),
                            dimnames = list(rownames(moi_loci_aa_table),
-                                           gene_names))
+                                           gene_ids))
     
     
-    for(gene in 1:length(gene_names)){
-      
-      if(length(gene_names) > 1){
-        
-        #gene_aa = moi_loci_aa_table[,grepl(gene_names[gene], colnames(moi_loci_aa_table))]
-        
-        gene_aa = matrix(moi_loci_aa_table[,grepl(gene_names[gene], colnames(moi_loci_aa_table))],
-                         ncol = sum(grepl(gene_names[gene], colnames(moi_loci_aa_table))),
-                         dimnames = list(rownames(moi_loci_aa_table),
-                                         colnames(moi_loci_aa_table)[grepl(gene_names[gene], colnames(moi_loci_aa_table))]))
-        
-      }else{
-        gene_aa = matrix(moi_loci_aa_table[,grepl(gene_names[gene], colnames(moi_loci_aa_table))],
-                         ncol = 1,
-                         dimnames = list(rownames(moi_loci_aa_table),
-                                         gene_names))
-      }
+    for(gene in 1:length(gene_ids)){
+
+       gene_aa = matrix(moi_loci_aa_table[, colnames(moi_loci_aa_table) %in% 
+                                           markers_of_interest[markers_of_interest$gene_id == gene_ids[gene],][['amplicon']]],
+                       ncol = sum(colnames(moi_loci_aa_table) %in% 
+                                    markers_of_interest[markers_of_interest$gene_id == gene_ids[gene],][['amplicon']]),
+                       dimnames = list(rownames(moi_loci_aa_table),
+                                       colnames(moi_loci_aa_table)[colnames(moi_loci_aa_table) %in% 
+                                                                     markers_of_interest[markers_of_interest$gene_id == gene_ids[gene],][['amplicon']]]))
       
       # filter amplicons for the gene of interest
-      gene_of_interest_info = markers_of_interest[markers_of_interest[['gene_ids']] == gene_ids[gene],]
+      gene_of_interest_info = markers_of_interest[markers_of_interest[['gene_id']] == gene_ids[gene],]
       strand = unique(gene_of_interest_info[['strand']])
       
       # Pick the list of amplicons
@@ -3904,7 +3978,7 @@ haplotypes_respect_to_reference = function(ampseq_object,
       }
     }
     
-    if(length(gene_names) > 1){
+    if(length(gene_ids) > 1){
       mon_aacigar_table = aacigar_table[(apply(aacigar_table, 1, function(i){sum(grepl("\\|",i))}) == 0),]
       poly_aacigar_table = aacigar_table[(apply(aacigar_table, 1, function(i){sum(grepl("\\|",i))}) != 0),]  
     }else{
@@ -3912,7 +3986,7 @@ haplotypes_respect_to_reference = function(ampseq_object,
       mon_aacigar_table = matrix(mon_aacigar_table, ncol = 1,
                                  dimnames = list(
                                    names(mon_aacigar_table),
-                                   gene_names
+                                   gene_ids
                                  ))
       poly_aacigar_table = aacigar_table[(apply(aacigar_table, 1, function(i){sum(grepl("\\|",i))}) != 0),]
       
@@ -3920,7 +3994,7 @@ haplotypes_respect_to_reference = function(ampseq_object,
         poly_aacigar_table = matrix(poly_aacigar_table, ncol = 1,
                                     dimnames = list(
                                       names(mon_aacigar_table),
-                                      gene_names
+                                      gene_ids
                                     ))
       }
     }
@@ -3956,15 +4030,15 @@ haplotypes_respect_to_reference = function(ampseq_object,
                                    by = 'samples',
                                    all.x = TRUE)
     
-    extended_aacigar_table %<>% pivot_longer(cols = all_of(gene_names),
-                                             names_to = 'gene_names',
+    extended_aacigar_table %<>% pivot_longer(cols = all_of(gene_ids),
+                                             names_to = 'gene_ids',
                                              values_to = 'haplotype')
     
-    extended_aacigar_table$gene_ids = NA
+    extended_aacigar_table$gene_names = NA
     
-    for(gene in 1:length(gene_names)){
-      extended_aacigar_table[extended_aacigar_table$gene_names == gene_names[gene],][['gene_ids']] = gene_ids[gene]
-      
+    for(gene in 1:length(gene_ids)){
+      extended_aacigar_table[extended_aacigar_table$gene_ids == gene_ids[gene],][['gene_names']] = gene_names[gene]
+
     }
     
     
@@ -4171,6 +4245,10 @@ drug_resistant_haplotypes = function(ampseq_object,
                                      ampseq_object@metadata[[filters[[temp_filter]][1]]] %in% strsplit(filters[[temp_filter]][2],',')[[1]])
     }
   }
+
+  if(is.null(gene_names)){
+    gene_names = gene_ids
+  }
   
   # Define haplotypes respect to a reference genome
   print("Defining haplotypes respect to a reference genome")
@@ -4201,8 +4279,8 @@ drug_resistant_haplotypes = function(ampseq_object,
   
   print("Defining aa haplotypes and phenotype respect to the presence of resistant alleles")
   for(gene in gene_ids){ # For each gene
-    
-    for(amplicon in drug_markers[drug_markers$gene_ids == gene, 'amplicon']){ # for each amplicon in the gene
+
+    for(amplicon in drug_markers[drug_markers$gene_id == gene, 'amplicon']){ # for each amplicon in the gene
       
       if(amplicon %in% colnames(loci_aa_table)){ # Apply only for amplicons present in loci table (some amplicons might be removed in previous steps)
         
@@ -4259,22 +4337,25 @@ drug_resistant_haplotypes = function(ampseq_object,
           
           # Keep polymorphic positions in the reference table that have been tested
           positions = positions[as.integer(positions) %in% tested_positions]
-          
-          # Select amplicons for defined sample and gene
-          sample_clones = loci_aa_table[sample,
+
+
+          if(length(positions) > 0){
+
+            # Select amplicons for defined sample and gene
+            sample_clones = loci_aa_table[sample,
                                         amplicon]
           
-          # if Genotype is not missing, Get aminoacid allele for each clone and each tested position in the sample 
-          if(!is.na(sample_clones)){ 
+            # if Genotype is not missing, Get aminoacid allele for each clone and each tested position in the sample 
+            if(!is.na(sample_clones)){ 
             
-            clones = unlist(strsplit(sample_clones, ' / '))
+              clones = unlist(strsplit(sample_clones, ' / '))
             
             
-            clone_alleles = NULL
+              clone_alleles = NULL
             
-            for(clone in clones){
+              for(clone in clones){
               
-              if(clone != 'p.(=)'){
+                if(clone != 'p.(=)'){
                 
                 sample_positions = gsub('^[A-Z]',
                                         '',
@@ -4612,6 +4693,42 @@ drug_resistant_haplotypes = function(ampseq_object,
             
           }
           
+        }else{
+          
+          sample_clones = loci_aa_table[sample,
+                                          amplicon]
+            
+            if(!is.na(sample_clones) & sample_clones == 'p.(=)'){
+              
+              # Update for each amplicon in the corresponding gene
+              if(is.na(aacigar_table[sample, gene])){
+                
+                phenotype_table[sample, gene] = 'Sensitive phenotype'
+                
+              }else{
+                
+                phenotype_table[sample, gene] = paste(phenotype_table[sample, gene], 'Sensitive phenotype', sep = '; ')
+                
+              }
+              
+            }else if(is.na(sample_clones)){
+              
+              # Update for each amplicon in the corresponding gene
+              if(is.na(aacigar_table[sample, gene])){
+                
+                phenotype_table[sample, gene] = paste0(amplicon, ' amplicon did not amplify')
+                
+              }else{
+                
+                phenotype_table[sample, gene] = paste(phenotype_table[sample, gene], paste0(amplicon, ' amplicon did not amplify'), sep = '; ')
+                
+              }
+              
+            }
+            
+          }
+         
+        
         }
         
       }
@@ -7266,5 +7383,84 @@ gadm_sp_loadCountries <- function (fileNames,
 ## nthroot----
 nthroot = function(x,n) {
   (abs(x)^(1/n))*sign(x)
+}
+
+# get_gene_description ----
+
+get_gene_description = function(obj = NULL, gff = NULL){
+  
+  if(class(obj) == 'ampseq'){
+    data = obj@markers
+  }else{
+    data = obj
+  }
+  
+  ref_gff = ape::read.gff(gff)
+  coding_regions = ref_gff[grepl('gene', ref_gff$type)&
+                             !grepl('^Transfer',ref_gff$seqid),
+                           c('seqid', 'start', 'end', 'attributes')]
+  
+  coding_regions$gene_id = gsub('ID=','',str_extract(coding_regions$attributes, 'ID=(PVP01|PF3D7)_([0-9]+|MIT[0-9]+|API[0-9]+)'))
+  
+  coding_regions$gene_description = gsub('description=','',str_extract(coding_regions$attributes, '(description=.+$|description=.+;)'))
+  
+  coding_regions$gene_name = gsub('(Name=|;)','',str_extract(coding_regions$attributes, 'Name=\\w+;'))
+  
+  coding_regions$gene_name = ifelse(is.na(coding_regions$gene_name), coding_regions$gene_id, coding_regions$gene_name)
+  
+  coding_regions = coding_regions[order(coding_regions$start),]
+  coding_regions = coding_regions[order(coding_regions$seqid),]
+  rownames(coding_regions) = 1:nrow(coding_regions)
+  
+  
+  data$gene_id = NA
+  data$gene_name = NA
+  data$gene_description = NA
+  
+  
+  for(gene in 1:nrow(coding_regions)){
+    
+    if(nrow(data[data$chromosome == coding_regions[gene, ][['seqid']]&
+                 data$start >= coding_regions[gene, ][['start']]&
+                 data$start <= coding_regions[gene, ][['end']],]) != 0){
+      
+      data[data$chromosome == coding_regions[gene, ][['seqid']]&
+             data$start >= coding_regions[gene, ][['start']]&
+             data$start <= coding_regions[gene, ][['end']],][['gene_id']] = coding_regions[gene, ][['gene_id']]
+      
+      data[data$chromosome == coding_regions[gene, ][['seqid']]&
+             data$start >= coding_regions[gene, ][['start']]&
+             data$start <= coding_regions[gene, ][['end']],][['gene_name']] = coding_regions[gene, ][['gene_name']]
+      
+      data[data$chromosome == coding_regions[gene, ][['seqid']]&
+             data$start >= coding_regions[gene, ][['start']]&
+             data$start <= coding_regions[gene, ][['end']],][['gene_description']] = coding_regions[gene, ][['gene_description']]
+    }
+    
+  }
+  
+  # indels that start out of the gene region but end 
+  
+  for(pos in rownames(data[is.na(data$gene_id), ])){
+    
+    if(nrow(coding_regions[coding_regions[['seqid']] == data[pos,][['chromosome']] &
+                           coding_regions[['start']] <= data[pos,][['end']] &
+                           coding_regions[['end']] >= data[pos,][['end']],]) != 0){
+      data[pos,][['gene_id']] = coding_regions[coding_regions[['seqid']] == data[pos,][['chromosome']] &
+                                                 coding_regions[['start']] <= data[pos,][['end']] &
+                                                 coding_regions[['end']] >= data[pos,][['end']],][['gene_id']]
+      
+      data[pos,][['gene_name']] = coding_regions[coding_regions[['seqid']] == data[pos,][['chromosome']] &
+                                                          coding_regions[['start']] <= data[pos,][['end']] &
+                                                          coding_regions[['end']] >= data[pos,][['end']],][['gene_name']]
+      
+      data[pos,][['gene_description']] = coding_regions[coding_regions[['seqid']] == data[pos,][['chromosome']] &
+                                                          coding_regions[['start']] <= data[pos,][['end']] &
+                                                          coding_regions[['end']] >= data[pos,][['end']],][['gene_description']]
+    }
+    
+  }
+  
+  return(data[, c('gene_id', 'gene_name', 'gene_description')])
 }
 
