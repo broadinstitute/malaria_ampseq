@@ -909,12 +909,15 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
                        'controls')){
       
       if(temp_slot == 'gt'){
-        
-        temp_sheet = data.frame(Sample_id = rownames(slot(ampseq_object, temp_slot)),
+        print("Printing gt slot...")
+
+        if (!is.null(slot(ampseq_object, temp_slot))){
+          temp_sheet = data.frame(Sample_id = rownames(slot(ampseq_object, temp_slot)),
                                 as.data.frame(slot(ampseq_object, temp_slot)))
 
+        }
       }else if(temp_slot == 'asv_seqs'){
-        
+        print("Printing asv_seqs slot...")
         if(!is.null(slot(ampseq_object, temp_slot))){
           
           temp_sheet = data.frame(asv_id = names(slot(ampseq_object, temp_slot)),
@@ -925,14 +928,19 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
         }
         
       }else if(temp_slot == 'markers'){
-        
-        temp_sheet = as.data.frame(slot(ampseq_object, temp_slot))
-
-         if(sum(is.infinite(temp_sheet[['distance']])) > 0){
-          temp_sheet[is.infinite(temp_sheet[['distance']]),][['distance']] = NA
+        print("Printing markers slot...")
+        if(!is.null(slot(ampseq_object, temp_slot))) {
+          temp_sheet = as.data.frame(slot(ampseq_object, temp_slot))
+          
+          if(sum(is.infinite(temp_sheet[['distance']])) > 0){
+            temp_sheet[is.infinite(temp_sheet[['distance']]),][['distance']] = NA
+          }
+        } else {
+          temp_sheet = NULL
         }
 
       }else if(temp_slot == 'discarded_loci'){
+        print("Printing discarded_loci slots...")
         
         temp_sheet = NULL
         
@@ -983,7 +991,7 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
         
         
       }else if(temp_slot == 'discarded_samples'){
-        
+        print("Printing discarded_samples slots...")
         temp_sheet = NULL
         
         if(!is.null(slot(ampseq_object, temp_slot))){
@@ -1019,7 +1027,7 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
         }
         
       }else if(temp_slot == 'controls'){
-        
+        print("Printing controls slots...")
         temp_sheet = NULL
         
         if(!is.null(slot(ampseq_object, temp_slot))){
