@@ -479,10 +479,10 @@ def get_zero_reads_samples(file, out):
 				w.write(f"{sample}\n")
 
 		#[TODO: Fix dependency that requires at least two zero read samples in MHap_Analysis_pipeline.R]
-		if num_samp_zero_reads < 2:
-			w.write(f"Placeholder_ID_1\n")
-		if num_samp_zero_reads < 1:
-			w.write(f"Placeholder_ID_2\n")
+		# if num_samp_zero_reads < 2:
+		# 	w.write(f"Placeholder_ID_1\n")
+		# if num_samp_zero_reads < 1:
+		# 	w.write(f"Placeholder_ID_2\n")
 
 		return True
 

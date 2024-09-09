@@ -991,10 +991,14 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
           temp_discarded_samples = slot(ampseq_object, temp_slot)
           
           # write gt
-
-          temp_discarded_samples_gt = data.frame(Sample_id = rownames(temp_discarded_samples[['gt']]),
-                                              as.data.frame(temp_discarded_samples[['gt']]))
           
+          if (!is.null(temp_discarded_samples[['gt']])) {
+            temp_discarded_samples_gt <- data.frame(Sample_id = rownames(temp_discarded_samples[['gt']]), 
+                                                    as.data.frame(temp_discarded_samples[['gt']]))
+          } else {
+            temp_discarded_samples_gt <- data.frame(Sample_id = NULL)
+          }
+
           createSheet(excel_wb, name = 'discarded_samples_gt')
           
           writeWorksheet(excel_wb,
@@ -1124,8 +1128,12 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
           
           # write gt
           
-          temp_discarded_loci_gt = data.frame(Sample_id = rownames(temp_discarded_loci[['gt']]),
+          if (!is.null(temp_discarded_loci[['gt']])) {
+            temp_discarded_loci_gt = data.frame(Sample_id = rownames(temp_discarded_loci[['gt']]),
                                               as.data.frame(temp_discarded_loci[['gt']]))
+          } else {
+            temp_discarded_loci_gt = data.frame(Sample_id = NULL)
+          }
           
           write.csv(temp_discarded_loci_gt,
                     file.path(name, 'discarded_loci_gt.csv'), 
