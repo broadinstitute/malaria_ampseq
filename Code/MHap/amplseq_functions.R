@@ -911,10 +911,11 @@ write_ampseq = function(ampseq_object, format = c('excel', 'csv', 'json'), name 
       if(temp_slot == 'gt'){
         print("Printing gt slot...")
 
-        if (!is.null(slot(ampseq_object, temp_slot))){
+        if(!is.null(slot(ampseq_object, temp_slot))){
           temp_sheet = data.frame(Sample_id = rownames(slot(ampseq_object, temp_slot)),
                                 as.data.frame(slot(ampseq_object, temp_slot)))
-
+        } else {
+          temp_sheet = NULL
         }
       }else if(temp_slot == 'asv_seqs'){
         print("Printing asv_seqs slot...")
@@ -3013,17 +3014,31 @@ sample_amplification_rate = function(ampseq_object, threshold = .8, update_sampl
     
   }
   
-  if(update_samples){
-    
-    ampseq_loci_abd_table_discarded_samples = ampseq_loci_abd_table[!(rownames(ampseq_loci_abd_table) %in% metadata[metadata[["sample_ampl_rate"]] > threshold ,][["Sample_id"]]),]
+  if(update_samples & sum(metadata[["sample_ampl_rate"]] <= threshold) > 0){
+
+    name_of_discarded_samples = rownames(ampseq_loci_abd_table)[rownames(ampseq_loci_abd_table) %in% metadata[metadata[["sample_ampl_rate"]] <= threshold ,][["Sample_id"]]]
+    number_of_discarded_samples = length(name_of_discarded_samples)
+
+    name_of_kept_samples = rownames(ampseq_loci_abd_table)[rownames(ampseq_loci_abd_table) %in% metadata[metadata[["sample_ampl_rate"]] > threshold ,][["Sample_id"]]]
+    number_of_kept_samples = length(name_of_kept_samples)
+
+    ampseq_loci_abd_table_discarded_samples = matrix(ampseq_loci_abd_table[name_of_discarded_samples,], 
+      nrow = number_of_discarded_samples, 
+      ncol = ncol(ampseq_loci_abd_table),
+      dimnames = list(name_of_discarded_samples,
+        colnames(ampseq_loci_abd_table)))
     print("Printing ampseq_loci_abd_table_discarded_samples...")
-    print(rownames(ampseq_loci_abd_table_discarded_samples))
-    ampseq_loci_abd_table = ampseq_loci_abd_table[rownames(ampseq_loci_abd_table) %in% metadata[metadata[["sample_ampl_rate"]] > threshold ,][["Sample_id"]],]
+    print(name_of_discarded_samples)
+    ampseq_loci_abd_table = matrix(ampseq_loci_abd_table[name_of_kept_samples,],
+      nrow = number_of_kept_samples,
+      ncol = ncol(ampseq_loci_abd_table),
+      dimnames = list(name_of_kept_samples,
+        colnames(ampseq_loci_abd_table)))
     print("Printing ampseq_loci_abd_table...")
     print(rownames(ampseq_loci_abd_table))
     metadata_complete = metadata
     metadata = metadata[metadata[["sample_ampl_rate"]] > threshold ,]
-    
+    metadata_discarded = metadata_complete[metadata_complete[["sample_ampl_rate"]] <= threshold ,]
     
     # loci_performance[["loci_ampl_rate2"]] = apply(ampseq_loci_abd_table, 2, function(x) 1- sum(is.na(x))/length(x))
     # 
@@ -3042,13 +3057,21 @@ sample_amplification_rate = function(ampseq_object, threshold = .8, update_sampl
     # ampseq_object@loci_performance = loci_performance
     
     ampseq_object@discarded_samples = list(gt = ampseq_loci_abd_table_discarded_samples,
-                                           metadata = metadata_complete)
+                                           metadata = metadata_discarded)
     
     # ampseq_object@plots[["loci_amplification_rate"]] = loci_performance_plot
     ampseq_object@plots[["samples_amplification_rate"]] = all_samples_performance_plot
     
     return(ampseq_object)
     
+  }else if(update_samples & sum(metadata[["sample_ampl_rate"]] > threshold) > 0){
+
+    
+    # ampseq_object@plots[["loci_amplification_rate"]] = loci_performance_plot
+    ampseq_object@plots[["samples_amplification_rate"]] = all_samples_performance_plot
+    
+    return(ampseq_object)
+
   }else{
     
     return(all_samples_performance_plot)
