@@ -3605,7 +3605,7 @@ if(!is.null(locus_ampl_rate)){
     ampseq_object = locus_amplification_rate(ampseq_object, threshold = locus_ampl_rate)
   }
   
-}else{
+}else{ ##[TODO: Delete loci_amplification_rate application]
   
   if(!is.null(Variable1)){
     ampseq_object = locus_amplification_rate(ampseq_object, threshold = 0.65, strata = Variable1)
@@ -3625,7 +3625,7 @@ if(!is.null(sample_ampl_rate)){
     ampseq_object = sample_amplification_rate(ampseq_object, threshold = sample_ampl_rate)  
   }
   
-}else{
+}else{ # [TODO:] Delete sample_amplification_rate application
   
   if(!is.null(Variable1)){
     ampseq_object = sample_amplification_rate(ampseq_object, threshold = 0.80, strata = Variable1)
