@@ -428,14 +428,59 @@ def convert_seqtab(file, cigars, out):
 			print("ERROR: No seqtab data to write!")
 			return
 
-		# write output file (sort variants first)
-		variants = sorted(list(variants), key=lambda variant: total_reads.get(variant, 0), reverse=True)
-		with open(out, "w") as w:
-			# write header
-			w.write("sample\t" + "\t".join(variants) + "\n")
-			# write one sample per line
-			for sample in sorted(seqtab):
-				w.write(f"{sample}\t" + "\t".join([f"{seqtab[sample].get(variant, 0)}" for variant in variants]) + "\n")
-		
-			return True
+	# write output file (sort variants first)
+	print("INFO: Converting variants here...")
+	variants = sorted(list(variants), key=lambda variant: total_reads.get(variant, 0), reverse=True)
+	with open(out, "w") as w:
+		# write header
+		w.write("sample\t" + "\t".join(variants) + "\n")
+		# write one sample per line
+		for sample in sorted(seqtab):
+			w.write(f"{sample}\t" + "\t".join([f"{seqtab[sample].get(variant, 0)}" for variant in variants]) + "\n")
+	
+		return True
+
+def get_zero_reads_samples(file, out):
+	"""
+	Parse asv_to_cigar file, to obtain samples with zero reads
+	Description:
+	This function parses the asv_to_cigar file, which contains ASV counts per sample, and produces the list of samples with 0 reads (no template controls).
+
+	Parameters:
+
+	file (str): The path to the asv_to_cigar table to be parsed and converted.
+	out (str): The path of the output file to write the zero read sample data.
+	Returns:
+
+	True if the conversion and writing process completes successfully.
+	"""
+
+	if not file:
+		print("ERROR: No CIGAR table provided.")
+		return 
+	
+	reads_per = {}
+	mean_reads_per_asv = {}
+	with open(file, 'r') as f:
+		f.readline() # skip header
+		for line in f: 
+			line = line.strip().split("\t")
+			sample = line[0]
+			read_counts = [int(float(reads)) for reads in line[1:]]
+			reads_per[sample] = sum(read_counts)
+			mean_reads_per_asv[sample] = sum(read_counts) / len(read_counts)
+
+	# write sample names to output
+	num_samp_zero_reads = 0
+	with open(out, 'w') as w:
+		w.write('x\t\n')
+		for sample, total_sample_reads in reads_per.items():
+			if (total_sample_reads == 0) or (mean_reads_per_asv[sample] <= 1): #If 0 or <1 read per ASV --> Negative controls
+				num_samp_zero_reads += 1
+				w.write(f"{num_samp_zero_reads}\t{sample}\n")
+		return True
+
+			
+
+
 

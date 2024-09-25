@@ -4,3 +4,7 @@ Code/.Rapp.history
 Code/.Rhistory
 Code/__pycache__/asv_to_cigar.cpython-37.pyc
 Code/__pycache__/amplicon_decontamination.cpython-37.pyc
+references/
+MHap_cmd.txt
+Code/MHap/amplseq_functions_v2.R
+Results*
