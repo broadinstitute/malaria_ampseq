@@ -252,6 +252,7 @@ names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 
 # Filter read
+# [TODO: Add parallelization by setting multithread=(# of cores available)]
 if (filter == TRUE) {
 	print("filtering samples...")
   out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs,
@@ -277,6 +278,7 @@ sample.names <- sample.names[out[,2] != 0]
 out <- out[(out[,2] != 0),]
 
 #Compute the error model
+# [TODO: Add parallelization by setting multithread=TRUE]
 print("starting error model learning for forward reads...")
 errF <- learnErrors(filtFs, multithread=FALSE, verbose=2, randomize=randomize, MAX_CONSIST=max_consist)
 print("starting error model learning for reverse reads...")

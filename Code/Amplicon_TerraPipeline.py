@@ -328,6 +328,7 @@ def main():
 		if args.demultiplex:
 			meta = open(os.path.join(res_dir, "Demultiplex_by_Size", "demux_nop_meta.tsv"), 'r')
 			samples = meta.readlines()
+			# [TODO: Parallelize primer trimming]
 			for sample in samples:
 				slist = sample.split()
 				# ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", "amp_primer_fw.fasta", "amp_primer_rv.fasta", "mixed_nop")
@@ -341,6 +342,7 @@ def main():
 		#Trim primers off overlapping targets
 		meta = open(os.path.join(res_dir, "Demultiplex_by_Size", "demux_op_meta.tsv"), 'r')
 		samples = meta.readlines()
+		# [TODO: Parallelize primer trimming]
 		for sample in samples:
 			slist = sample.split()
 			# ad.trim_primer(slist[0], slist[1], slist[2], res_dir, "PrimerRem", "amp_primer_fw.fasta", "amp_primer_rv.fasta", "mixed_op")
