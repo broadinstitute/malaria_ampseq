@@ -551,19 +551,23 @@ cigar2ampseq = function(cigar_object, min_abd = 1, min_ratio = .1, markers = NUL
   }else if(is.null(markers) & is.null(markers_pattern)){
     ampseq_loci_vector = unique(sapply(strsplit(colnames(cigar_table), ","), function(x) x[1]))
   }
-  
+
+  # Check - If cigar_table and ampseq_loci_vector are not equal, recorrect ampseq_loci_vector to prevent errors propagated by different markersTable information
+  if(!setequal(unique(colnames(cigar_table)), unique(ampseq_loci_vector))){
+    ampseq_loci_vector = unique(sapply(strsplit(colnames(cigar_table), ","), function(x) x[1]))
+  }
+
+  print(ampseq_loci_vector)
+
   ampseq_loci_abd_table = matrix(NA, nrow = nrow(cigar_table), ncol = length(ampseq_loci_vector), dimnames = list(rownames(cigar_table), ampseq_loci_vector))
-  
   for(sample in rownames(ampseq_loci_abd_table)){
     for(locus in colnames(ampseq_loci_abd_table)){
       alleles = cigar_table[sample, grepl(paste0("^",locus,',|\\.)'), colnames(cigar_table))]
-      
       if(length(alleles) == 1){
         names(alleles) <- colnames(cigar_table)[grepl(paste0("^",locus,',|\\.)'), colnames(cigar_table))]
       }
       
       if(length(alleles[which(alleles >= min_abd)]) == 1){
-        
         if(!is.null(markers_pattern)){
           ampseq_loci_abd_table[sample, locus] = paste(gsub(locus,'',names(alleles[which(alleles >= min_abd)]), ","), alleles[which(alleles >= min_abd)], sep = ":")
         }else{
@@ -606,7 +610,7 @@ cigar2ampseq = function(cigar_object, min_abd = 1, min_ratio = .1, markers = NUL
                                   markers = markers,
                                   loci_performance = NULL,
                                   pop_summary = NULL)
-    
+    print(ampseq_object@gt)
     return(ampseq_object)
     
   }else{
@@ -620,7 +624,6 @@ cigar2ampseq = function(cigar_object, min_abd = 1, min_ratio = .1, markers = NUL
                                   markers = markers,
                                   loci_performance = NULL,
                                   pop_summary = NULL)
-    
     return(ampseq_object)
     
   }
@@ -2781,6 +2784,7 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
   print("Calculating loci performance...")
   loci_performance = data.frame(loci = colnames(ampseq_loci_abd_table),
                                 loci_ampl_rate_Total = apply(ampseq_loci_abd_table, 2, function(x) 1 - sum(is.na(x))/length(x)))
+  print(loci_performance)
   print("Finished calculating loci performance!")
   if(!is.null(strata)){
     
@@ -2922,6 +2926,8 @@ locus_amplification_rate = function(ampseq_object, threshold = .65, update_loci 
       discarded_loci = loci_performance[loci_performance[["loci_ampl_rate_Total"]] <= threshold,][["loci"]]
       keeped_loci = loci_performance[loci_performance[["loci_ampl_rate_Total"]] > threshold,][["loci"]]
       
+      # Ensure that these stay as dataframes
+
       ampseq_loci_abd_table_discarded_loci =
         ampseq_loci_abd_table[, colnames(ampseq_loci_abd_table) %in% discarded_loci]
       ampseq_loci_abd_table = 
@@ -2981,9 +2987,14 @@ sample_amplification_rate = function(ampseq_object, threshold = .8, update_sampl
   metadata = ampseq_object@metadata
   ampseq_loci_abd_table = ampseq_object@gt
   loci_performance = ampseq_object@loci_performance
-  
+
+  # Check if ampseq_object is a vector with one locus due to locus performance dropout
+  if(is.vector(ampseq_object@gt) && nrow(loci_performance) == 1) {
+    locus_name <- rownames(loci_performance)
+    ampseq_loci_abd_table = matrix(ampseq_object@gt, nrow=length(ampseq_object@gt), ncol=1, dimnames=list(names(ampseq_object@gt), locus_name))
+  }
+
   metadata[["sample_ampl_rate"]] = apply(ampseq_loci_abd_table, 1, function(x) 1 - sum(is.na(x))/length(x))
-  
   if(!is.null(strata)){
     
     
@@ -3021,6 +3032,9 @@ sample_amplification_rate = function(ampseq_object, threshold = .8, update_sampl
 
     name_of_kept_samples = rownames(ampseq_loci_abd_table)[rownames(ampseq_loci_abd_table) %in% metadata[metadata[["sample_ampl_rate"]] > threshold ,][["Sample_id"]]]
     number_of_kept_samples = length(name_of_kept_samples)
+
+    print("Table with discarded samples")
+    print(ampseq_loci_abd_table[name_of_discarded_samples,])
 
     ampseq_loci_abd_table_discarded_samples = matrix(ampseq_loci_abd_table[name_of_discarded_samples,], 
       nrow = number_of_discarded_samples, 
@@ -3129,9 +3143,11 @@ setMethod("get_ASVs_attributes", signature(obj = "ampseq"),
               
               alt = paste(alt[!is.na(alt) & alt != '.'], collapse = ',')
             })
-          
+            print("Before gsub")
+            print(gt)
             gt = gsub(':\\d+', '',gt)
-            
+            print("After gsub")
+            print(gt)
             # Heterozygous positions
             HetPos = matrix(grepl('_', gt), ncol = ncol(gt), nrow = nrow(gt))
             

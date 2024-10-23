@@ -899,6 +899,7 @@ if(!is.null(cigar_paths)|!is.null(cigar_files)){
   }else{
     print("Creating ampseq object...")
     ampseq_object = cigar2ampseq(cigar_object, markers = markers, min_abd = min_abd, min_ratio = min_ratio, remove_controls = T)
+    print("Finished creating ampseq object!")
   }
   
   }else if(!is.null(ampseq_jsonfile)){
@@ -1137,7 +1138,6 @@ if(PerformanceReport){
                                                 external_metadata,
                                                   by = join_by)
     }
-    
     
   
   ## Sample performance by different coverage----
@@ -3532,7 +3532,7 @@ if(!is.null(metadata_file)){
   ampseq_object@metadata = left_join(ampseq_object@metadata,
                                      external_metadata,
                                      by = join_by)
-  
+  print(ampseq_object@metadata)
   print('external metadata added to ampseq object')
 }
 
@@ -3617,7 +3617,6 @@ if(!is.null(locus_ampl_rate)){
 # if sample_ampl_rate was provided
 
 print("measuring amplification rate by sample")
-
 if(!is.null(sample_ampl_rate)){
   if(!is.null(Variable1)){
     ampseq_object = sample_amplification_rate(ampseq_object, threshold = sample_ampl_rate, strata = Variable1)
