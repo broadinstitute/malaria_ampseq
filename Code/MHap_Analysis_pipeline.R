@@ -893,12 +893,12 @@ if(!is.null(cigar_paths)|!is.null(cigar_files)){
   markers = read.csv(markers)
   
   if(PerformanceReport){
-    ampseq_object_abd1 = cigar2ampseq(cigar_object, markers = markers, min_abd = 1, min_ratio = min_ratio, remove_controls = F)
-    ampseq_object = cigar2ampseq(cigar_object, markers = markers, min_abd = min_abd, min_ratio = min_ratio, remove_controls = F)
+    ampseq_object_abd1 = cigar2ampseq(cigar_object, markers = NULL, min_abd = 1, min_ratio = min_ratio, remove_controls = F)
+    ampseq_object = cigar2ampseq(cigar_object, markers = NULL, min_abd = min_abd, min_ratio = min_ratio, remove_controls = F)
  
   }else{
     print("Creating ampseq object...")
-    ampseq_object = cigar2ampseq(cigar_object, markers = markers, min_abd = min_abd, min_ratio = min_ratio, remove_controls = T)
+    ampseq_object = cigar2ampseq(cigar_object, markers = NULL, min_abd = min_abd, min_ratio = min_ratio, remove_controls = T)
     print("Finished creating ampseq object!")
   }
   
